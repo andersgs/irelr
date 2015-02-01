@@ -136,7 +136,7 @@ SEXP sims(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SE
         REAL(rep_out)[rep+4*INTEGER(reps)[0]] = lr99(sim_ind1, sim_ind2, af,napl,nl,na);
         REAL(rep_out)[rep+5*INTEGER(reps)[0]] = wang02(sim_ind1, sim_ind2, af, napl, nl, a2_unc, a3_unc, a4_unc, a22_unc, weights_unc);
         REAL(rep_out)[rep+6*INTEGER(reps)[0]] = wang02(sim_ind1, sim_ind2, af, napl, nl, a2, a3, a4, a22, weights);
-        REAL(rep_out)[rep+7*INTEGER(reps)[0]] = hk08(sim_ind1, sim_ind2, napl, h);
+        REAL(rep_out)[rep+7*INTEGER(reps)[0]] = hk08(sim_ind1, sim_ind2, napl, nl, h);
         REAL(rep_out)[rep+8*INTEGER(reps)[0]] = (double)countTotalSharedAlleles/(2.0*(double)nl);
         REAL(rep_out)[rep+9*INTEGER(reps)[0]] = (double)countLociShared/((double)nl);
     }
