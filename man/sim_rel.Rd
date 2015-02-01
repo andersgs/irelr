@@ -2,11 +2,11 @@
 % Please edit documentation in R/irelr.R
 \name{sim_rel}
 \alias{sim_rel}
-\title{}
+\title{simulate relatedness values}
 \usage{
 sim_rel(data, reps, k_vector = c(1, 0, 0), allele_frq = NULL)
 }
 \description{
-
+simulate relatedness values
 }
 

@@ -2,12 +2,12 @@
 % Please edit documentation in R/irelr.R
 \name{sim_rel_dataframe}
 \alias{sim_rel_dataframe}
-\title{}
+\title{A data.frame of simulated relatedness values}
 \usage{
 sim_rel_dataframe(data, relCategories = c("po", "fs", "hs", "un"),
   numbIter = 10000, lociToKeep = "all", all_freqs = NULL)
 }
 \description{
-
+A data.frame of simulated relatedness values
 }
 

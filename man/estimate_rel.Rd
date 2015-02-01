@@ -24,24 +24,24 @@ A data.frame with \eqn{(n * (n - 1)) \ 2} (where \code{n} is the
                          as the numerator and \code{ind2} as the denominator.#'
                          \deqn{
                            \begin{equation}
-                             r_{QG89_xy} = \sum_{l}\frac{1}{L}\frac{\sum}{\sum}
+                             r_{QG89_yx} = \sum_{l}\frac{(\sum_{alleles}(p_{xm} - \bar{p_{m}}))}
+                                                       {(\sum_{alleles}(p_{ym} - \bar{p_{m}}))}
                            \end{equation}
                          }{
-                         rQG89_xy = (1 / L) *
-
-                             sum_{l}(sum(p_ym - p_m) / (sum(p_xm - p_m)))
+                         rQG89_xy =
+                             sum_{l}((sum(p_xm - p_m)) / sum_{l}(sum(p_ym - p_m)))
                          }
                          }
    \item{\code{QG89_yx}: Queller and Goodnight (1989) index with \code{ind2}
                          as the numerator and \code{ind1} as the denominator.
                          \deqn{
                            \begin{equation}
-                             r_{QG89_yx} = \sum_{l}\frac{1}{L}\frac{\sum}{\sum}
+                             r_{QG89_yx} = \sum_{l}\frac{(\sum_{alleles}(p_{ym} - \bar{p_{m}}))}
+                                                       {(\sum_{alleles}(p_{xm} - \bar{p_{m}}))}
                            \end{equation}
                          }{
-                         rQG89_yx = (1 / L) *
-
-                             sum((sum(p_ym - p_m) / (sum(p_xm - p_m))))
+                         rQG89_yx =
+                             sum_{l}((sum(p_ym - p_m)) / sum_{l}(sum(p_xm - p_m)))
                          }
                          }
    \item{\code{QG89_avg}: the mean of \code{QG89_xy} and \code{QG89_yx}.}
