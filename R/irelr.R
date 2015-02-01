@@ -1,7 +1,7 @@
 
 ## simulation functions --------------------------------------------------------
 
-#'
+#' simulate relatedness values
 #'
 sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){
   #test for genind
@@ -60,7 +60,7 @@ sim_rvalues <-function(n_ind, n_loc,n_alleles,allele_frq,n_alleles_per_locus,k_v
 }
 
 
-#'
+#' A data.frame of simulated relatedness values
 #'
 sim_rel_dataframe = function(data,relCategories = c('po', 'fs', 'hs', 'un'),numbIter = 10000, lociToKeep = 'all', all_freqs = NULL){
   relFactor = factor(rep(relCategories,each=9*numbIter),levels=relCategories)
