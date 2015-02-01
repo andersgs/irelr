@@ -196,3 +196,79 @@ ggplot(simData[[mD]][.(relCats,ix)],aes(Value,fill=Categories))+geom_histogram(a
 
 missClass1 = sum(relSims1[,Value]>=boundary$maximum)/totalSims
 missClass2 = sum(relSims2[,Value]<boundary$maximum)/totalSims
+
+####
+ind1 = c(1,1,0,0)/2
+ind2 = c(0,0,2,0)/2
+sum((ind1 - ind2)^2)
+
+
+mean_h = sapply(lapply(seploc(nancycats), function(loc) apply(loc@tab, 1, function(g) {if(any(is.na(g))) {NA} else if (any(g == 0.5)) {1} else {0}})), function(h) sum(h, na.rm = T) / sum(!is.na(h)))
+
+
+n_inds = length(nancycats@ind.names)
+
+pairs = combn(x = 1:n_inds, m = 2)
+
+calc_dij = function(pair){
+  pairs_by_loc = seploc(pair)
+  dij2 = sapply(pairs_by_loc, function(g) {
+    genos = g@tab
+    if (any(is.na(genos))) {
+      NA
+    } else {
+      sum((genos[1,] - genos[2,])^2)
+    }
+  })
+  not_miss = which(!is.na(dij2))
+  mean(dij2[not_miss]) / mean(mean_h[not_miss])
+}
+
+mean_h = sapply(lapply(seploc(nancycats), function(loc) apply(loc@tab, 1, function(g) {if(any(is.na(g))) {NA} else if (any(g == 0.5)) {1} else {0}})), function(h) sum(h, na.rm = T) / sum(!is.na(h)))
+
+nancy_rhk = apply(pairs, 2, function(inds) 1 - mean(calc_dij(nancycats[inds,]), na.rm = T))
+
+##
+kingroup_test = read.csv("data//kingroup_test.csv", header = T, stringsAsFactors = F)
+kingroup_test$loc1 = gsub(pattern = "^\\s", replacement = "", kingroup_test$loc1)
+kingroup_test$loc2 = gsub(pattern = "\\s?fast", replacement = "100", kingroup_test$loc2)
+kingroup_test$loc2 = gsub(pattern = "\\s?slow1", replacement = "102", kingroup_test$loc2)
+kingroup_test$loc2 = gsub(pattern = "\\s?slow2", replacement = "104", kingroup_test$loc2)
+kingroup_test$loc2 = gsub(pattern = "\\s?slow3", replacement = "106", kingroup_test$loc2)
+kingroup_test$loc2 = gsub(pattern = "\\s?slow4", replacement = "108", kingroup_test$loc2)
+kingroup_test$loc3 = gsub(pattern = "\\s?big", replacement = "100", kingroup_test$loc3)
+kingroup_test$loc3 = gsub(pattern = "\\s?small", replacement = "102", kingroup_test$loc3)
+kingroup_test$loc4 = gsub(pattern = "\\s?a", replacement = "100", kingroup_test$loc4)
+kingroup_test$loc4 = gsub(pattern = "\\s?b", replacement = "102", kingroup_test$loc4)
+kingroup_test$loc4 = gsub(pattern = "\\s?c", replacement = "104", kingroup_test$loc4)
+kingroup_test$loc4 = gsub(pattern = "\\s?d", replacement = "106", kingroup_test$loc4)
+kingroup_test$loc4 = gsub(pattern = "\\s?e", replacement = "108", kingroup_test$loc4)
+kingroup_test$loc4 = gsub(pattern = "\\s?f", replacement = "110", kingroup_test$loc4)
+kingroup_test$loc4 = gsub(pattern = "\\s?g", replacement = "112", kingroup_test$loc4)
+kingroup_test$loc5 = gsub(pattern = "\\s?all1", replacement = "100", kingroup_test$loc5)
+kingroup_test$loc5 = gsub(pattern = "\\s?all2", replacement = "102", kingroup_test$loc5)
+kingroup_test$loc6 = gsub(pattern = "\\s?com", replacement = "100", kingroup_test$loc6)
+kingroup_test$loc6 = gsub(pattern = "\\s?rare", replacement = "102", kingroup_test$loc6)
+kingroup_test$loc7 = gsub(pattern = "^\\s", replacement = "", kingroup_test$loc7)
+kingroup_genind = df2genind(kingroup_test[,3:9], sep = "/", loc.names = names(kingroup_test)[3:9])
+
+mean_h = sapply(lapply(seploc(kingroup_genind), function(loc) apply(loc@tab, 1, function(g) {if(any(is.na(g))) {NA} else if (any(g == 0.5)) {1} else {0}})), function(h) sum(h, na.rm = T) / sum(!is.na(h)))
+
+n_inds = length(kingroup_genind@ind.names)
+
+pairs = combn(x = 1:n_inds, m = 2)
+
+apply(pairs[,1:10], 2, function(inds) 1 - mean(calc_dij(kingroup_genind[inds,]), na.rm = T))
+
+test_rel = estimate_rel(data = kingroup_genind)
+
+#mariana
+dat_mariana = read.genepop(file = "~/Downloads/inputGenepop.gen")
+dat_mariana@ind.names <- paste("ind", 1:length(dat_mariana@ind.names), sep = "")
+mean_h = sapply(lapply(seploc(dat_mariana), function(loc) apply(loc@tab, 1, function(g) {if(any(is.na(g))) {NA} else if (any(g == 0.5)) {1} else {0}})), function(h) sum(h, na.rm = T) / sum(!is.na(h)))
+
+n_inds = length(dat_mariana@ind.names)
+
+pairs = combn(x = 1:n_inds, m = 2)
+
+mariana_rhk = apply(pairs, 2, function(inds) 1 - mean(calc_dij(dat_mariana[inds,]), na.rm = T))
