@@ -17,24 +17,25 @@
 #'                          as the numerator and \code{ind2} as the denominator.#'                          
 #'                          \deqn{
 #'                            \begin{equation}
-#'                              r_{QG89_xy} = \sum_{l}\frac{1}{L}\frac{\sum}{\sum}
+#'                              r_{QG89_yx} = \sum_{l}\frac{(\sum_{alleles}(p_{xm} - \bar{p_{m}}))}
+#'                                                        {(\sum_{alleles}(p_{ym} - \bar{p_{m}}))}
+
 #'                            \end{equation}
 #'                          }{
-#'                          rQG89_xy = (1 / L) *
-#'                          
-#'                              sum_{l}(sum(p_ym - p_m) / (sum(p_xm - p_m)))
+#'                          rQG89_xy = 
+#'                              sum_{l}((sum(p_xm - p_m)) / sum_{l}(sum(p_ym - p_m)))
 #'                          }
 #'                          }
 #'    \item{\code{QG89_yx}: Queller and Goodnight (1989) index with \code{ind2}
 #'                          as the numerator and \code{ind1} as the denominator.
 #'                          \deqn{
 #'                            \begin{equation}
-#'                              r_{QG89_yx} = \sum_{l}\frac{1}{L}\frac{\sum}{\sum}
+#'                              r_{QG89_yx} = \sum_{l}\frac{(\sum_{alleles}(p_{ym} - \bar{p_{m}}))}
+#'                                                        {(\sum_{alleles}(p_{xm} - \bar{p_{m}}))}
 #'                            \end{equation}
 #'                          }{
-#'                          rQG89_yx = (1 / L) *
-#'                          
-#'                              sum((sum(p_ym - p_m) / (sum(p_xm - p_m))))
+#'                          rQG89_yx =                          
+#'                              sum_{l}((sum(p_ym - p_m)) / sum_{l}(sum(p_xm - p_m)))
 #'                          }
 #'                          }
 #'    \item{\code{QG89_avg}: the mean of \code{QG89_xy} and \code{QG89_yx}.}
@@ -82,12 +83,13 @@ estimate_rel<-function(data,input_allele_f = NULL){
   locNames = as.character(data@loc.names)
   nAlleles = as.integer(sum(nAllPerLocus))
   totalDyads = as.integer((nInd*(nInd-1)/2))
-  relMatrix = matrix(0,ncol=(12+nLoc),nrow=totalDyads)
-  out<-.Call("estimateRel",genoTable,nInd,alleleFreq,nAllPerLocus,nLoc,nAlleles,relMatrix,totalDyads)
-  locusMissing = relMatrix[,13:(12+nLoc)]
+  heteroz = sapply(lapply(seploc(data), function(loc) apply(loc@tab, 1, function(g) {if(any(is.na(g))) {NA} else if (any(g == 0.5)) {1} else {0}})), function(h) sum(h, na.rm = T) / sum(!is.na(h)))
+  relMatrix = matrix(0,ncol=(13+nLoc),nrow=totalDyads)
+  out<-.Call("estimateRel",genoTable,nInd,alleleFreq,nAllPerLocus,nLoc,nAlleles,relMatrix,totalDyads,heteroz)
+  locusMissing = relMatrix[,13:(13+nLoc)]
   locusMissingF = apply(locusMissing,1,function(row) paste(locNames[!as.logical(row)],collapse='.'))
-  relDF = data.frame(relMatrix[,1:12],stringsAsFactors = F)
-  names(relDF)<-c('ind1', 'ind2','n_missing_loci',"QG89_xy","QG89_yx","QG89_avg","QG89_rsxy","LR99_avg",'W02_unc','W02_cor','prop_alleles_shared','prop_loci_shared')
+  relDF = data.frame(relMatrix[,1:13],stringsAsFactors = F)
+  names(relDF)<-c('ind1', 'ind2','n_missing_loci',"QG89_xy","QG89_yx","QG89_avg","QG89_rsxy","LR99_avg",'W02_unc','W02_cor','HK08','prop_alleles_shared','prop_loci_shared')
   relDF[,"ind1"] <- inds[relDF$ind1]
   relDF[,"ind2"] <- inds[relDF$ind2]
   relDF$missing_loci <- locusMissingF

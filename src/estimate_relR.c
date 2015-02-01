@@ -17,11 +17,11 @@
 
 
 // function declarations
-SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP n_loc, SEXP n_alls, SEXP out, SEXP totalDyads);
+SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP n_loc, SEXP n_alls, SEXP out, SEXP totalDyads, SEXP heteroz);
 
 //functions
 
-SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP n_loc, SEXP n_alls, SEXP out, SEXP totalDyads)
+SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP n_loc, SEXP n_alls, SEXP out, SEXP totalDyads, SEXP heteroz)
 {
 
 //declare counters
@@ -30,13 +30,14 @@ SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP
 //translate from SEXP to C	
    double *genotable = REAL(geno_table);
    double *af = REAL(al_frq);
+   double *h = REAL(heteroz);
    int *napl = INTEGER(n_al_per_l);
    int nl = INTEGER(n_loc)[0];
    int na = INTEGER(n_alls)[0];
    int ni = INTEGER(n_ind)[0];
   
   //accounting for missing data
-  double *newInd1, *newInd2, *newAllFrq;
+  double *newInd1, *newInd2, *newAllFrq, *newH;
   int newNLoc,newNAll,newMarker,pos1,pos2;
   int *newNAllPerLoc;
   int *missingLoci; // added on 24/7/14 to keep track of which loci are missing for each dyad
@@ -47,6 +48,7 @@ SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP
   newAllFrq = (double *)malloc(sizeof(double)*na);
   newNAllPerLoc = (int *)malloc(sizeof(int)*nl);
   missingLoci = (int *)malloc(sizeof(int)*nl);
+  newH = (double *)malloc(sizeof(double)*nl);
   
   //counting total shared alleles and total shared alleles per locus
   // added on 24/7/14 to calculate the above quantities
@@ -103,6 +105,7 @@ SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP
       memset(newAllFrq,0,sizeof(double)*na);
       memset(newNAllPerLoc,0,sizeof(int)*nl);
       memset(missingLoci,0,sizeof(int)*nl);
+      memset(newH,0,sizeof(double)*nl);
       //wang 2002 uncorrect parameters
       memset(u_unc,0,sizeof(double)*nl);
       memset(a2_unc,0,sizeof(double)*nl);
@@ -134,6 +137,7 @@ SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP
             newNLoc = newNLoc + 1;
             newNAllPerLoc[(newNLoc-1)] = napl[k];
             newNAll = newNAll + napl[k];
+            newH[k] = h[k]; 
         for(l=marker; l<(marker+napl[k]); l++){
             pos1 = i+l*ni;
             pos2 = j+l*ni;
@@ -186,10 +190,11 @@ SEXP estimateRel(SEXP geno_table, SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP
       REAL(out)[dyad+7*totaldyads] = lr99(newInd1, newInd2, newAllFrq,newNAllPerLoc,newNLoc,newNAll);
       REAL(out)[dyad+8*totaldyads] = wang02(newInd1, newInd2, newAllFrq, newNAllPerLoc, newNLoc, a2_unc, a3_unc, a4_unc, a22_unc, weights_unc);
       REAL(out)[dyad+9*totaldyads] = wang02(newInd1, newInd2, newAllFrq, newNAllPerLoc, newNLoc, a2, a3, a4, a22, weights);
-      REAL(out)[dyad+10*totaldyads] = (double)countTotalSharedAlleles/(2.0*(double)newNLoc);
-      REAL(out)[dyad+11*totaldyads] = (double)countLocusSharedAlleles/(double)newNLoc;
+      REAL(out)[dyad+10*totaldyads] = hk08(newInd1, newInd2, newNAllPerLoc, newNLoc, newH);
+      REAL(out)[dyad+11*totaldyads] = (double)countTotalSharedAlleles/(2.0*(double)newNLoc);
+      REAL(out)[dyad+12*totaldyads] = (double)countLocusSharedAlleles/(double)newNLoc;
      for(z=0; z<nl;z++){
-      	REAL(out)[dyad+(12+z)*totaldyads] = missingLoci[z];
+      	REAL(out)[dyad+(13+z)*totaldyads] = missingLoci[z];
       }
       dyad = dyad + 1;
     }

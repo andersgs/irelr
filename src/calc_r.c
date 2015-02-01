@@ -21,6 +21,7 @@ double lr99(double *ind1, double *ind2, double *al_frq, int *al_per_loc, int n_l
 void prep_wang02(double *al_frq, int *al_per_loc, int n_loc, int n_alls, int n_ind, double *u, double *a2, double *a3, double *a4, double *a22, double *weights, int correct);
 double wang02(double *ind1, double *ind2, double *al_frq, int *al_per_loc, int n_loc, double *a2, double *a3, double *a4, double *a22, double *weights);
 void wang_phi_delta(double p1, double p2, double p3, double b, double c, double d, double e, double f, double g, double *phi, double *delta);
+double hk08(double *ind1, double *ind2, int *al_per_loc, int n_loc, double *h);
 
 double qr89(double *ind1, double *ind2, double *al_frq, int *al_per_loc, int n_loc, int n_alls){
     //Calculate a one way Queller and Goodnight 1989 index.
@@ -166,7 +167,7 @@ double lr99(double *ind1, double *ind2, double *al_frq, int *al_per_loc, int n_l
     else if(estimate > 1.0){
         return 1.0;
     }
-    else if(estimate<-1.0){
+    else {
         return -1.0;
     }
 }
@@ -290,4 +291,22 @@ void wang_phi_delta(double p1, double p2, double p3, double b, double c, double 
     
     *delta = ((c*d*f*(e+g)*(p1+1-(2*b))) + (((1-b)*(f*pow(e,2.0)+d*pow(g,2.0))) - pow((e*f - d*g),2.0))*(p1-b) + c*(d*g - e*f)*(d*p3 - f*p2) - pow(c,2.0)*d*f*(p3 + p2 - d - f) - c*(1-b)*(d*g*p3 + e*f*p2))/V;
 
+}
+
+double hk08(double *ind1, double *ind2, int *al_per_loc, int n_loc, double *h) {
+    marker = 0;
+    double dij2 = 0.0;
+    double total_h = 0.0;
+    double mean_dij, mean_h;
+    
+    for (i=0; i<n_loc; i++){
+        for(j=marker; j<(marker+al_per_loc[i]); j++){
+          dij2 = dij2 + pow((ind1[j] - ind2[j]), 2.0);
+        }
+        marker = marker + al_per_loc[i];
+        total_h = total_h + h[i];
+    } 
+    mean_dij = dij2 / n_loc;
+    mean_h = total_h / n_loc;
+  return  1 - (mean_dij / mean_h) ;
 }
