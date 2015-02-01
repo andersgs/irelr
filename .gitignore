@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 Read-and-delete-me
-*.o
-*.so
+src/calc_r.o
+src/estimate_relR.o
+src/irelr.so
