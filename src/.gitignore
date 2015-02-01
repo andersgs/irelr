@@ -1,3 +1,5 @@
 irelr.so
 calc_r.o
 estimate_relR.o
+*.o
+*.so
