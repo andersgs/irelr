@@ -2,6 +2,8 @@
 
 #' simulate relatedness values
 #'
+#'
+#'@export
 sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){
   #test for genind
   if(class(data)!="genind"){
