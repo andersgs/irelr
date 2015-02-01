@@ -262,7 +262,7 @@ apply(pairs[,1:10], 2, function(inds) 1 - mean(calc_dij(kingroup_genind[inds,]),
 
 test_rel = estimate_rel(data = kingroup_genind)
 
-test_sim = irelr::sim_rel
+test_sim = irelr::sim_rel(data = kingroup_genind, reps = 100, k_vector = c(1,0,0))
 
 #mariana
 dat_mariana = read.genepop(file = "~/Downloads/inputGenepop.gen")
