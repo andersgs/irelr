@@ -27,7 +27,7 @@ int share[3] = {0};
 
 // function declarations
 int al_pos(double *al_frq, int start, int end);
-SEXP sims(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SEXP n_alls, SEXP rep_out, SEXP reps);
+SEXP sims(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SEXP n_alls, SEXP rep_out, SEXP reps, SEXP heteroz);
 void sim_dyad(double *al_frq, int *n_al_per_l, double *k_array, int n_loc, double *ind1, double *ind2);
 void sim_noIBD(double *al_frq, int start, int end, double *ind1, double *ind2);
 void sim_oneIBD(double *al_frq, int start, int end, double *ind1, double *ind2);
@@ -36,15 +36,16 @@ void sim_twoIBD(double *al_frq, int start, int end, double *ind1, double *ind2);
 
 //functions
 
-SEXP sims(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SEXP n_alls, SEXP rep_out, SEXP reps)
+SEXP sims(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SEXP n_alls, SEXP rep_out, SEXP reps, SEXP heteroz)
 {
 	
 //translate to SEXP to C	
   	double *af = REAL(al_frq);
   	int *napl = INTEGER(n_al_per_l);
   	double *k = REAL(k_array);
-	int nl = INTEGER(n_loc)[0];
-	int na = INTEGER(n_alls)[0];
+	  double *h = REAL(heteroz);
+    int nl = INTEGER(n_loc)[0];
+	  int na = INTEGER(n_alls)[0];
     int ni = INTEGER(n_ind)[0];
 	
 	
@@ -135,8 +136,9 @@ SEXP sims(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SE
         REAL(rep_out)[rep+4*INTEGER(reps)[0]] = lr99(sim_ind1, sim_ind2, af,napl,nl,na);
         REAL(rep_out)[rep+5*INTEGER(reps)[0]] = wang02(sim_ind1, sim_ind2, af, napl, nl, a2_unc, a3_unc, a4_unc, a22_unc, weights_unc);
         REAL(rep_out)[rep+6*INTEGER(reps)[0]] = wang02(sim_ind1, sim_ind2, af, napl, nl, a2, a3, a4, a22, weights);
-        REAL(rep_out)[rep+7*INTEGER(reps)[0]] = (double)countTotalSharedAlleles/(2.0*(double)nl);
-        REAL(rep_out)[rep+8*INTEGER(reps)[0]] = (double)countLociShared/((double)nl);
+        REAL(rep_out)[rep+7*INTEGER(reps)[0]] = hk08(sim_ind1, sim_ind2, napl, h);
+        REAL(rep_out)[rep+8*INTEGER(reps)[0]] = (double)countTotalSharedAlleles/(2.0*(double)nl);
+        REAL(rep_out)[rep+9*INTEGER(reps)[0]] = (double)countLociShared/((double)nl);
     }
 //        Rprintf("%d, %d, %d\n",share[0], share[1], share[2]);
         
