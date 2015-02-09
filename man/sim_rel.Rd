@@ -2,11 +2,48 @@
 % Please edit documentation in R/simulate_relatedness.R
 \name{sim_rel}
 \alias{sim_rel}
-\title{simulate relatedness values}
+\title{Simulate relatedness values}
 \usage{
 sim_rel(data, reps, k_vector = c(1, 0, 0), allele_frq = NULL)
 }
+\arguments{
+\item{data}{An object of class GENIND containing genotypes for a single population.}
+
+\item{reps}{The number of dyads to simulate.}
+
+\item{k_vector}{A vector of three numbers that must add to 1.0 that gives the
+expected proportion of loci that are under one of the three
+possible IBD modes for non-inbred populations (see Details).}
+
+\item{allele_frq}{A vector of size \code{n} alleles (total number of alleles
+                 across all loci), containing the frequency of each allele in
+                 the population. Should be ordered as in the \code{tab} slot
+                 of the GENIND object. This parameter is optional (see Details).}
+}
 \description{
-simulate relatedness values
+This function takes as input a GENIND object, and simulates
+     \code{reps} dyads related according to the specifications in the
+     the \code{k_vector}. It outputs a data.frame with relatedness values
+     for each simulated dyad for each of the indices described in the
+     \code{estimate_rel} function. A vector of allele frequencies can be
+     optionally supplied. If none is supplied, allele frequencies are
+     estimated from the data.
+}
+\details{
+The goal of this function is to take population allele frequency data
+         and calculate relatedness values calculated from simulated pairs of
+         individuals (dyads) that have any given
+         relatedness level (assuming an outbred population). The distribution
+         of relatedness values can then be used to help classify observed
+         pairs of sampled individuals into relatedness categories (e.g.,
+         Blouin et al. 1996).
+}
+\references{
+Blouin M, Parsons M, Lacaille V, Lotz S (1996) Use of microsatellite
+                 loci to classify individuals by relatedness.
+                 Molecular Ecology, 5, 393–401.
+
+Wang JL (2011) Unbiased relatedness estimation in structured
+                 populations. Genetics, 187, 887–901.
 }
 
