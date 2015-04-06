@@ -13,7 +13,8 @@ vignette: >
 require(adegenet)
 require(irelr)
 require(data.table)
-require(ggplot2)
+require(ggplot2)i
+require(gridExtra)
 ```
 
 # Introduction
@@ -463,7 +464,6 @@ ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
   geom_vline(x = blouin_threshold, colour = 'red', size = 2)
 ```
 
-
 ### Calculate misclassification errors
 
 Given a particular threshold, it is then possible to calculate the mis-classification
@@ -552,6 +552,8 @@ For completeness, we can add information on for an `unrelated` category,
 assuming, perhaps more realistically, that our dataset has not only 
 `full-sib` and `half-sib` pairs.
 
+#### Simulate unrelated individuals
+
 ```{r, sim_unrelated}
 # create a unrelated k-vector
 un_kvector <- c(1.0, 0.0, 0.0)
@@ -568,4 +570,102 @@ unrelated_dt[, sim_ix := 1:nreps]
 # create a single data.table with all the simulations
 sims <- rbindlist(list(half_sibs_dt, full_sibs_dt, unrelated_dt))
 sims
+```
+
+#### Plotting the distribution of relatedness values
+
+```{r, sim_plot_hist2, fig.height = 7, fig.width = 7, message = F}
+ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
+  geom_density(alpha = 0.5) +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Density") +
+  scale_fill_discrete(name = "Relatedness categories", labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
+  theme(legend.justification=c(1,0), legend.position=c(1,0.75))
+```
+
+```{r, sim_plot_boxplot2, fig.height = 7, fig.width = 7, message = F}
+ggplot(sims, aes(y = LR99_avg, x = rel_cat)) +
+  geom_boxplot() +
+  ylab("Lynch and Ritland (1999) index") +
+  xlab("Relatedness Category")
+```
+
+#### Checking the joint distribution
+
+```{r, transform_sims2}
+# transform output to a new data.table that only has Lynch and Ritland 1999 values
+sims_lr99 <- dcast.data.table(data = sims, formula = sim_ix ~ rel_cat, value.var = 'LR99_avg')
+sims_lr99
+```
+
+```{r, sim_plot_joint2, fig.height = 7, fig.width = 7, message = F}
+p1 = ggplot(sims_lr99, aes(x = hs, y = fs)) +
+  geom_point(colour = 'gray50') +
+  ylab("Full-sibs") +
+  xlab("Half-sibs") +
+  xlim(c(-1,1)) + 
+  ylim(c(-1,1)) +
+  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  stat_density2d(colour = 'red', n = 40, size = 1.5) +
+  geom_vline(x = 0.25) +
+  geom_hline(y = 0.50)
+
+p2 = ggplot(sims_lr99, aes(x = un, y = fs)) +
+  geom_point(colour = 'gray50') +
+  ylab("Full-sibs") +
+  xlab("Unrelated") +
+  xlim(c(-1,1)) + 
+  ylim(c(-1,1)) +
+  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  stat_density2d(colour = 'red', n = 40, size = 1.5) +
+  geom_vline(x = 0.0) +
+  geom_hline(y = 0.50)
+
+p3 = ggplot(sims_lr99, aes(x = un, y = hs)) +
+  geom_point(colour = 'gray50') +
+  ylab("Half-sibs") +
+  xlab("Unrelated") +
+  xlim(c(-1,1)) + 
+  ylim(c(-1,1)) +
+  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  stat_density2d(colour = 'red', n = 40, size = 1.5) +
+  geom_vline(x = 0.0) +
+  geom_hline(y = 0.25)
+
+grid.arrange(p1, p2, p3, ncol = 2)
+```
+
+The probability that `full-sib` pair has an index larger than an `unrelated`
+pair is:
+
+```{r,prop_fs_larger_un}
+sims_lr99[,sum(fs > un)]/nrow(sims_lr99)
+```
+
+The probability that `half-sib` pair has an index larger than an `unrelated`
+pair is:
+
+```{r,prop_hs_larger_un}
+sims_lr99[,sum(hs > un)]/nrow(sims_lr99)
+```
+
+#### Classify pairs using the Blouin classifier
+
+```{r, blouin_classifier2}
+rel_cats <- c('fs','hs','un')
+n_thresholds <- 2
+blouin_thresholds <- numeric(n_thresholds)
+for(i in 1:n_thresholds) {
+  blouin_thresholds[i] <- blouin_classifier(sims_lr99,rel_cats = c('fs', 'hs'))
+}
+# checking the value
+blouin_threshold
+
+# ensuring that they are indeed (nearly) equal (to within a reasonable
+# expected difference given the simulation)
+sims_lr99[,sum(fs <= blouin_threshold)] / nrow(sims_lr99)
+sims_lr99[,sum(hs >= blouin_threshold)] / nrow(sims_lr99)
+
+all.equal(sims_lr99[,sum(fs <= blouin_threshold)] / nrow(sims_lr99),
+  sims_lr99[,sum(hs >= blouin_threshold)] / nrow(sims_lr99))
 ```
