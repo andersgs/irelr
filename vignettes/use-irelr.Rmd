@@ -9,4 +9,563 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+```{r, load_libs, echo=FALSE, results='hide'}
+require(adegenet)
+require(irelr)
+require(data.table)
+require(ggplot2)
+```
 
+# Introduction
+
+`irelr` is a package that implements the a Monte Carlo approach for reconstructing
+pedigrees from genetic data information. It assumes that unbiased population allele 
+frequency data is available. In some cases, it is possible to obtain this information
+from the avaialble genetic data --- however, this assumes that the sample consists
+mainly of `unrelated` individuals. If your sample consists of many related 
+individuals, then independently derived population allele frequency data is 
+necessary for `irelr` to be useful. 
+
+# The data
+
+## Data format
+
+The most straight forward way of getting under way in using `irelr` is by having
+the data in a standard `genepop` format, with alleles encoded with 3 digits. 
+The data format specifications can be found 
+[here](http://genepop.curtin.edu.au/help_input.html). 
+
+Ultimately, the input format is a `genind` object from the `R` package `adegenet`
+ (by Thibaud Jombart et al. [link](http://www.inside-r.org/packages/cran/adegenet).
+Information on how to convert several data formats into a `genind` object can 
+be found [here](http://www.inside-r.org/packages/cran/adegenet/docs/.valid.genind).
+
+**`irelr` assumes a single population.**
+
+Below are the first 20 lines of the `nancycats` dataset available in the package
+`adegenet`. Once the `adegenet` package is loaded, it is possible to find out 
+more about the data set by typing `?nancycats` in `R`'s command prompt.
+
+```{r, example_genepop_file, echo = FALSE, comment=""}
+cat(readLines(system.file("files/nancycats.gen",package="adegenet"), n = 20), file = '', sep = "\n")
+```
+
+## Loading the data
+
+If the data is in a `genepop` format, it can be easily loaded by using the 
+function `read.genepop()` from the `adegenet` package (*note that the file 
+must have the `.gen` extention*):
+
+```{r, load_data}
+# set file path location. substitute this for the actual path of your file
+# note the need for a .gen extention. otherwise, an error will be generated.
+file_path <- system.file("files/nancycats.gen", package = "adegenet")
+# having a look at the file path
+file_path
+# loading the data into a variable called data
+data <- adegenet::read.genepop(file = file_path, quiet = T)
+# having a look at data
+# notice that data is an S4 class of type 'genind'
+# it includes 237 individuals, genotyped at 9 loci
+# there are 108 alleles across the genotyped loci
+data
+
+# number of indivduals
+length(data@ind.names)
+
+# number of loci
+length(data@loc.names)
+
+# number of alleles per locus
+data@loc.nall
+
+# total number of alleles
+sum(data@loc.nall)
+
+# total number of populations
+# irel will ignore the population division and attempt to estimate the 
+# pedigree of all individuals in the data file
+length(data@pop.names)
+
+# irelr also assumes that individuals have unique identifiers
+# at the moment, the individuals are just named after their population
+data@ind.names
+
+# this can be fixed by changing the data in the data file so that each 
+# individual has a unique identifier. 
+# alternatively, a list of names can be manually created and assigned to the 
+# ind.names slot of the 'genind' object:
+data(nancycats)
+ind_identifiers <- nancycats@ind.names
+ind_identifiers
+data@ind.names <- ind_identifiers
+data@ind.names
+```
+
+# Estimating relatedness indices
+
+Once the data is loaded, we can use `irelr`'s `estimate_rel()` function to 
+estimate relatedness indices for all pairs of individuals in the data set.
+
+```{r, estimate_rel}
+# estimate relatedness indices
+rel_estimates <- irelr::estimate_rel(data = data)
+# create a data.table with the results
+# this will make it easier down the line to parse out individual indices
+rel_est_dt  <- data.table(rel_estimates)
+rel_est_dt
+```
+
+The output of the `estimate_rel()` function is a data.frame, which we transform
+in to a `data.table` (this requires the `data.table` package). The output includes
+to columns --- `ind1` and `ind2` --- that indicate for which two individuals the 
+indices in the row refer to.
+
+Eight indices are currently calculated:
+
+  1. Four forms of the Queller and Goodnight (1989) index:
+    - QG89_xy: Assymetrical form in which individual 1 
+      is the reference (denominator), and individual 2 is 
+      the numerator.
+    - QG89_yx: same as above, but now individual 2 is the
+      reference.
+    - QG89_avg: mean of the two above estimators.
+    - QG89_rsxy: ratio of the sum of the numerators and the sum of the 
+      denominators of the first two indices above.
+  2. One form of the Lynch and Ritland (1999) estimator:
+    - LR99_avg: The mean of the for each individual as the reference in turn.
+  3. Two forms of the Wang (2002) estimator: 
+    - W02_cor: The corrected estimator.
+    - W02_unc: The uncorrected estimator.
+  4. One form of the Heg and Konovalov (2008) estimator:
+    - HK08: Unlike the others, is based on population heterozygosity and not
+      allele frequencies.
+      
+In addition, two other relevant pieces of information are outputted:
+  
+  1. `prop_alleles_shared`: proportiono of alleles shared between the dyad. 
+    Thus, for instance, if the dyad are typed at 7 loci, there are 14 potential
+    alleles to be shared.
+  2. `prop_loci`: proportion of loci that share alleles. For instance, if a dyad
+    is typed at 7 loci, and it shares alleles at 5, then this variable is 5/7.
+
+Finally, the function also reports the number of missing loci (`n_missing_loci`),
+which are the number of loci that did not have an allele call for at least one 
+of the pair. Thus, relatedness indices are only calculated based on loci that
+are genotyped for both individuals in the dyad. The loci with missing genotype
+calls for a particular dyad are listed in the `missing_loci` column. If multiple
+loci are missing, they are separated by a "." (e.g., `loc1.loc2`, would mean that
+loc1 and loc2 are missing). This will be used later to assign classification error rates 
+based on the available data for a dyad.
+
+## Plotting the results
+
+### Distribution of individual indices
+
+The distribution of particular index can be displayed as follows:
+
+```{r, hist_lr99, fig.cap = "Distribution of Lynch and Ritland (1999) indices for the nancy cats dataset across all possible pairs from 237 genotyped individuals.", message = F, fig.height=7, fig.width=7}
+ggplot(rel_est_dt, aes(x = LR99_avg)) +
+  geom_histogram() +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Count")
+```
+
+We can divide up the histgram by missing loci (below). Here, the top left panel 
+shows the distribution of indices for pairs that had complete datasets. Otherwise,
+the panel label indicates the missing loci. As we can see, we have one pair 
+that is missing loci `fca8`, `fca23`, `fca37`, and `fca77` (bottom row, second
+panel from the left).
+
+```{r, hist_lr99_by_miss_loc, fig.cap = "Distribution of Lynch and Ritland (1999) indices for the nancy cats dataset across all possible pairs from 237 genotyped individuals by missing loci.", fig.height = 7, fig.width = 7, message = F}
+ggplot(rel_est_dt, aes(x = LR99_avg)) +
+  geom_histogram() +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Count") +
+  facet_wrap(facets = ~ missing_loci, ncol = 4, scale = 'free')
+```
+
+### Joint distribution of indices
+
+We can easily examine the joint distribution of two indices as well (below).
+As we can see, two estimators can often disagree substantially in their 
+estimates. Their are pairs of individuals with `LR99_avg` values that are 
+over 0.5 (indicating high relatedness), for which their `W02_cor` value is 
+very close to 0 (indicating low relatedness). While we have not carried out
+any experiments to test this, this suggests there might be value in using 
+information from multiple indices when reconstructing pedigrees.
+
+```{r, join_dist_lr99_w02cor, fig.cap = "Joint distribution of Lynch and Ritland (1999) and Wang (2002) corrected indices for the nancy cats dataset across all possible pairs from 237 genotyped individuals. The red lines indicate density contour lines, and the bold navy blue indicates the equal relatedness line.", fig.height = 7, fig.width = 7, message = F}
+ggplot(rel_est_dt, aes(x = LR99_avg, y = W02_cor)) +
+  geom_point() +
+  geom_density2d(colour = "red") +
+  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  xlim(c(-1,1)) +
+  ylim(c(-1,1)) +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Wang (2002) corrected index")
+```
+
+# Simulating data to classify pairs
+
+In `irelr` one can simulate any relatedness category by simply figuring out 
+the `k` vector. The `k` vector is a vector of 3 numbers, that must sum to 1.0.
+Each value gives the proportion of loci for which a pair of individuals share 
+0, 1, and 2 ancestors. Thus, for a pair of unrelated individuals, there 0.0 
+loci for which they share 2 ancestors, 0.0 for which they share 1 ancestor, and
+1.0 loci for which they share 0 ancestors. Thus, the `k`-vector is specified 
+as `c(1.0, 0.0, 0.0)`. 
+
+The `k`-vectors for the most usual relatedness categoris are:
+
+  1. Unrelated: `c(1.0, 0.0, 0.0)`
+  2. Half-sibs: `c(0.5, 0.5, 0.0)`
+  3. Full-sibs: `c(0.25, 0.50, 0.25)`
+  4. Parent-offspring: `c(0.0, 1.0, 0.0)`
+  
+The expected relatedness value for each category can be estimated by the 
+weighted average of number of ancestors by `k`-value, normalized by the 
+total number of possible ancestors (2). Thus, for parent-offspring dyads:
+
+$$
+po = 0.5 \times (0 \times 0.0 + 1 \times 1.0 + 2 \times 0.0)
+$$
+
+## Differentiating between full-sibs and half-sibs
+
+A common case where reconstructing the pedigree of pairs of individuals might 
+come in handy, is to differentiate between half-sibs and full-sibs in samples
+taken from different bird nests. This could be used to get an estimate of 
+the number of nests with extra-pair chicks, and thus give an estimate of number 
+of extra-pair matings in a season for a particular bird species. Here, we will 
+just focus on how to classify the data from the `nancycats` dataset into half-sibs
+and full-sibs, but if one new which pairs belonged to each nest, it would be 
+possible to classify the whole dataset, and then examine pairs by nest 
+grouping.
+
+### The `sim_rel()` function
+
+Below, we demonstrate the use of the `irelr` function `sim_rel()` to generate
+10,000 half-sib dyads and 10,000 full-sib dyads, and calculate for each simulated dyad the relatedness
+estimators defined above.
+
+**Note**: Here, `irelr` uses estimates of allele frequency derived directly 
+from the dataset. As we see above for the Lynch and Ritland (1999) index, 
+the great majority of pairs have an index close to 0. Therefore, it is 
+reasonable to assume that the majority of pairs are unrelated, and we can 
+obtain an estimate of population allele frequencies that is reasonably 
+unbiased by a large proportion of highly related pairs. Eventually, `irelr` will
+allow for inputting user defined allele frequencies that are independently 
+derived from the dataset. These are expected to generate more a robust
+pedigree reconstruction.
+
+```{r, sims}
+# set number of dyads to simulate
+nreps <- 10000
+
+# create a half-sib k-vector
+hs_kvector <- c(0.5, 0.5, 0.0)
+
+# simulate half-sib dyads, and output relatedness values
+half_sibs <- irelr::sim_rel(data = data, reps = nreps, k_vector = hs_kvector)
+half_sibs_dt  <- data.table(half_sibs)
+half_sibs_dt
+
+# add a relatedness category column to be used later
+half_sibs_dt[, rel_cat := rep('hs', nreps)]
+half_sibs_dt[, sim_ix := 1:nreps]
+
+# create a full-sib k-vector
+fs_kvector <- c(0.25, 0.5, 0.25)
+
+# simulate full-sib dyads, and output relatedness values
+full_sibs <- irelr::sim_rel(data = data, reps = nreps, k_vector = fs_kvector)
+full_sibs_dt  <- data.table(full_sibs)
+full_sibs_dt
+
+# add a relatedness category column to be used later
+full_sibs_dt[, rel_cat := rep('fs', nreps)]
+full_sibs_dt[, sim_ix := 1:nreps]
+
+# create a single data.table with all the simulations
+sims <- rbindlist(list(half_sibs_dt, full_sibs_dt))
+sims
+```
+
+### Examining the simulated values for a single index
+
+Below, we demonstrate how to examine the distribution of the Lynch and 
+Ritland (1999) index for both simulated relatedness categories. Two options 
+for visualisation are shown, a `density` plot and a `boxplot` option. As we 
+can see, there is substantial overlap in the distribution of these two 
+indices. This is expected to contribute to a high mis-classification rate.
+
+```{r, sim_plot_hist, fig.height = 7, fig.width = 7, message = F}
+ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
+  geom_density(alpha = 0.5) +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Density") +
+  scale_fill_discrete(name = "Relatedness categories", labels = c("Full-Sibs", "Half-Sibs")) +
+  theme(legend.justification=c(1,0), legend.position=c(1,0.75))
+```
+
+```{r, sim_plot_boxplot, fig.height = 7, fig.width = 7, message = F}
+ggplot(sims, aes(y = LR99_avg, x = rel_cat)) +
+  geom_boxplot() +
+  ylab("Lynch and Ritland (1999) index") +
+  xlab("Relatedness Category")
+```
+
+### The joint distribution of indices of different relatedness categories
+
+Below, we plot the joint distribution of index values for the `full-sibs` 
+(`y` axis) and `half-sibs` (`x` axis). The bold navy blue line is the 
+equal index value line. The red contour lines indicate the density distribution, 
+and the grey points are the simulated values. The vertical and horizontal black 
+lines indicate the expected relatedness index value for the `half-sib` and 
+`full-sib` categories, respectively. The figure demonstrates that `full-sibs`
+are expected to have a larger index value than `half-sibs`, which is what 
+one woud expect. It also shows that there is a non-trivial proportion of 
+`half-sibs` that have a larger value than `full-sib` pair.
+
+```{r, transform_sims}
+# transform output to a new data.table that only has Lynch and Ritland 1999 values
+sims_lr99 <- dcast.data.table(data = sims, formula = sim_ix ~ rel_cat, value.var = 'LR99_avg')
+sims_lr99
+```
+
+```{r, sim_plot_joingt, fig.height = 7, fig.width = 7, message = F}
+ggplot(sims_lr99, aes(x = hs, y = fs)) +
+  geom_point(colour = 'gray50') +
+  ylab("Full-sibs") +
+  xlab("Half-sibs") +
+  xlim(c(-1,1)) + 
+  ylim(c(-1,1)) +
+  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  stat_density2d(colour = 'red', n = 40, size = 1.5) +
+  geom_vline(x = 0.25) +
+  geom_hline(y = 0.50)
+```
+
+We can calculate the probability that the index value for a `full-sib` dyad 
+is smaller than the index of a `half-sib` dyad by estimating the proportion 
+of simulations for which LR99_fs > LR99_hs:
+
+```{r,prop_fs_larger_hs}
+sims_lr99[,sum(fs > hs)]/nrow(sims_lr99)
+```
+
+So, we can see that there is a ~0.8 probability that the `full-sib` index is 
+larger than the `half-sib` index. 
+
+We can also easily calculate summary stats for each relatedness category, such 
+as the mean, median, and 2.5% and 97.5% quantiles:
+
+```{r, summ_stats}
+# mean relatedness values per relatedness category
+sims_lr99[,list(fs_mean = mean(fs), hs_mean = mean(hs))]
+
+# distribution summary per relatedness category
+sims_lr99[,list(quantile = c(0.025, 0.50, 0.975),fs_summ = quantile(fs, p = c(0.025, 0.5, 0.975)), hs_summ = quantile(hs, p = c(0.025, 0.5, 0.975)))]
+```
+
+### The Blouin classifier
+
+The Blouin classifier attempts to set a threshold index value to distinguish
+among different relatedness categories. The classifier specifies that the 
+threshold be point where the probability of an index value given one category is 
+equal to the 1 - the probability of the index value given the other 
+category. This will become clearer below.
+
+The probability of observing a index value that is at most *x* given that the 
+relatedness category is `full-sib` can be calculated as:
+
+```{r, prop_fs}
+# pick a random threshold
+threshold_value = 0.40
+
+# the probability that the Lynch and Ritland (1999) index is at most 0.40 
+# given that the relatedness category is full-sibs for the nancycats 
+# dataset is:
+
+sims_lr99[,sum(fs <= threshold_value)] / nrow(sims_lr99)
+
+# so, we count how many simulated values under full-sibs relationship 
+# category were 0.4 or less, and divide by the total number of simulations
+```
+
+Now, we ask what is the probability of observing an index value as large as *x*
+or larger given that the relatedness category is `half-sibs`:
+
+```{r, prop_hs}
+
+# the probability that the Lynch and Ritland (1999) index is as large as 0.40 
+# or larger given that the relatedness category is half-sibs for the nancycats 
+# dataset is:
+
+sims_lr99[,sum(hs >= threshold_value)] / nrow(sims_lr99)
+
+# so, we count how many simulated values under full-sibs relationship 
+# category were 0.4 or less, and divide by the total number of simulations
+```
+
+As we can see P(x $\le$ 0.4 | cat = fs) > P (x $\ge$ 0.4 | cat = hs) (0.34 > 0.21).
+This tells us that this threshold value (0.4) is likely to be too conservative
+(i.e., we are mis-classifying too many `full-sib` pairs incorrectly as `half-sib`
+pairs). Given that in our hypothetical example we are looking for strong 
+evidence for `half-sibs` in order to determine a minimum level of extra-pair 
+paternity such a threshold might not be desireable. 
+
+The Blouin classifier specifies that the optimal threshold value is where 
+P(X $\le$ x | cat = fs) = P (X $\ge$ x | cat = hs). We can easily build 
+an optmizer function that will give us that value:
+
+```{r, blouin_classifier}
+blouin_classifier <- function(data, rel_cats) {
+  total_sims = nrow(data)
+  minimize_function <- function(threshold, data, rel_cats, n) {
+    cat1 = rel_cats[1]
+    cat2 = rel_cats[2]
+    p1 = data[,sum(eval(as.symbol(cat1)) <= threshold)] / n
+    p2 = data[,sum(eval(as.symbol(cat2)) >= threshold)] / n
+    return((p1 - p2)^2)
+  }
+  blouin_threshold  <- optimise(f = minimize_function, 
+           interval = c(0,1), 
+           data = data, 
+           rel_cats = rel_cats, 
+           n = total_sims)
+  return(blouin_threshold$minimum)
+}
+blouin_threshold <- blouin_classifier(sims_lr99,rel_cats = c('fs', 'hs'))
+# checking the value
+blouin_threshold
+
+# ensuring that they are indeed (nearly) equal (to within a reasonable
+# expected difference given the simulation)
+sims_lr99[,sum(fs <= blouin_threshold)] / nrow(sims_lr99)
+sims_lr99[,sum(hs >= blouin_threshold)] / nrow(sims_lr99)
+
+all.equal(sims_lr99[,sum(fs <= blouin_threshold)] / nrow(sims_lr99),
+  sims_lr99[,sum(hs >= blouin_threshold)] / nrow(sims_lr99))
+```
+
+We can then plot the simulated values with the estimated densities for 
+the index in question, along with the threshold. 
+
+```{r, sim_plot_hist_plus_threshold, fig.height = 7, fig.width = 7, message = F}
+ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
+  stat_density(kernel = 'cosine', alpha = 0.5, position = 'dodge') +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Density") +
+  scale_fill_discrete(name = "Relatedness categories", labels = c("Full-Sibs", "Half-Sibs")) +
+  theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
+  geom_vline(x = blouin_threshold, colour = 'red', size = 2)
+```
+
+
+### Calculate misclassification errors
+
+Given a particular threshold, it is then possible to calculate the mis-classification
+error:
+
+```{r, miss_class_error}
+calc_error_rate <- function(threshold, data, rel_cats) {
+  cat1 <- rel_cats[1]
+  cat2 <- rel_cats[2]
+  total_sims <- nrow(data)
+  p1 <- data[, sum(eval(as.symbol(cat1)) <= threshold)] / total_sims
+  p2 <- data[, sum(eval(as.symbol(cat2)) >= threshold)] / total_sims
+  res <- matrix(rep(0,4), ncol = 2)
+  res[1,1] <- 1 - p1
+  res[1,2] <- p1
+  res[2,1] <- p2
+  res[2,2] <- 1 - p2
+  row.names(res) <- c(cat1, cat2)
+  colnames(res) <- c(cat1, cat2)
+  return(res)
+}
+calc_error_rate(blouin_threshold, data = sims_lr99, rel_cats = c('fs', 'hs'))
+# because the Blouin classifier finds the point that minimizes the error, the 
+# error rate is symmetric. In other words, it is the same for both relatedness
+# categories. Thus, with the Blouin classifier, the proportion of full-sibs 
+# that are expected to be correctly classified is ~0.73, and ~0.27 will be 
+# incorrectly classified as half-sibs. 
+# THIS OF COURSE ASSUMES THAT OUR DATASET IS ENTIRELY COMPRISED OF FULL-SIB AND
+# HALF-SIB PAIRS.
+# Furthermore, this is an approximate error estimate. The precision of the estimate
+# can be increased by simulating a larger number of dyads. The accuracy, however,
+# depends on the number of sampled loci, and how unbiased the estimate of the 
+# population allele frequency really is.
+```
+
+We could decide, for instance, that the error rate is still too large in favour
+of `full-sibs` being incorrectly classified as `half-sibs`. In this case, 
+one can examine how the error rate changes with the threshold. In the figure
+below, we plot the proportion of simulated `half-sib` dyads (in black) and 
+the proportion of `full-sib` dyads (in red) correctly classified given a 
+certain threshold level. The vertical navy blue line give the Blouin threshold.
+We can see that the closer we get to a `0` threshold, the more likely that the 
+number of correctly classified `full-sibs` grows to almost 100%. Meanwhile, the
+proportion of correctly classified `half-sibs` goes to almost zero. At this level,
+we would be the most confident that any pairs classified as `half-sibs` are 
+likely to be truly `half-sibs`. In this case, we have set the bar for the 
+evidence required to classify a pair as `half-sibs` as very high. 
+
+**Again, it should be stressed that this assumes that the sample in the dataset
+is solely comprised of full-sibs and potential half-sibs.**
+
+```{r, error_change, fig.height = 7, fig.width = 7, message = F}
+thresholds = seq(0,1,length.out = 200)
+change_thresholds <- sims_lr99[,list(thresholds, half_sibs = sapply(thresholds, function(th) sum(hs <= th)) / nrow(sims_lr99), full_sibs = sapply(thresholds, function(th) sum(fs >= th)) / nrow(sims_lr99))]
+ggplot(change_thresholds, aes(thresholds, half_sibs)) + 
+  geom_line() + 
+  geom_line(aes(thresholds, full_sibs), colour = 'red') +
+  geom_vline(x = blouin_threshold, colour = 'navyblue') + 
+  xlab("Thresholds") +
+  ylab("Proportion correctly classified")
+```
+
+### Classifying individuals
+
+Now that we have set on a threshold (e.g., the Blouin threshold). It is easy 
+to classify the observed values into relatedness categories:
+
+```{r, classify_estimates, fig.height = 7, fig.width = 7, message = F}
+# use the cut function to classify pairs using the Lynch and Ritland (1999) index.
+# the function will give label 'hs' to all pairs that have an LR99_avg index
+# value that is -1 < index ≤ Blouin Threshold. And, it will label as 'fs' pairs
+# with LR99_avg index value that are Blouin Threshold < index ≤ 1.
+# it automatically adds the results to the estimate data.table, which can then
+# facilitate comparisons across estimators
+rel_est_dt[,lr99_class := cut(LR99_avg, breaks = c(-1,blouin_threshold,1), labels = c("hs", "fs"), include.lowest = T)]
+table(rel_est_dt[,lr99_class])
+ggplot(rel_est_dt,aes(lr99_class)) + 
+  geom_bar() +
+  xlab("Pairs classified using the Lynch and Ritland (1999) index using the Blouin threshold.") +
+  ylab("Count")
+```
+
+### Adding an unrelated category
+
+For completeness, we can add information on for an `unrelated` category, 
+assuming, perhaps more realistically, that our dataset has not only 
+`full-sib` and `half-sib` pairs.
+
+```{r, sim_unrelated}
+# create a unrelated k-vector
+un_kvector <- c(1.0, 0.0, 0.0)
+
+# simulate unrelated dyads, and output relatedness values
+unrelated <- irelr::sim_rel(data = data, reps = nreps, k_vector = un_kvector)
+unrelated_dt  <- data.table(unrelated)
+unrelated_dt
+
+# add a relatedness category column to be used later
+unrelated_dt[, rel_cat := rep('un', nreps)]
+unrelated_dt[, sim_ix := 1:nreps]
+
+# create a single data.table with all the simulations
+sims <- rbindlist(list(half_sibs_dt, full_sibs_dt, unrelated_dt))
+sims
+```
