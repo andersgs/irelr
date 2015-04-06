@@ -5,3 +5,4 @@ Read-and-delete-me
 src/calc_r.o
 src/estimate_relR.o
 src/irelr.so
+inst/doc
