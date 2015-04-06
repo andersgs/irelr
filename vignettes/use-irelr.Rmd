@@ -13,7 +13,7 @@ vignette: >
 require(adegenet)
 require(irelr)
 require(data.table)
-require(ggplot2)i
+require(ggplot2)
 require(gridExtra)
 ```
 
