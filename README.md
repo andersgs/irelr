@@ -11,7 +11,7 @@ The package contains C code, so if you are in Windows, you will require the
 RTools package.
 
 I recommend installing the latest version of R from [here](http://www.r-project.org/).
-The, installing the latest version of RStudio from [here](http://www.rstudio.com/products/rstudio/download/).
+Then installing the latest version of RStudio from [here](http://www.rstudio.com/products/rstudio/download/).
 
 Everyone will require the Hadley's devtools package. From the R command prompt within RStudio, type:
 
