@@ -25,6 +25,8 @@ You can then install `irelr` with the following command:
 
     install_github("andersgs/irelr", build_vignettes = TRUE)
 
+This might take a few moments as the vignette and source files are built.
+
 # How to use it
 
 The package provides two main functions. A function to estimate relatedness indices
@@ -55,7 +57,9 @@ indices from 10,000 unrelated pairs:
     irelr:sim_rel(nancycats, k_vector = c(1.0, 0.0, 0.0))
 
 An extensive vignette is available with details on how to use the results from
-these two functions to reconstruct a pedigree.
+these two functions to reconstruct a pedigree. To access the vignette just type:
+
+    vignette(topic = 'use-irelr', package = 'irelr')
 
 # References
 
