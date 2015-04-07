@@ -70,6 +70,7 @@ estimators and evaluating their performance. Conservation Genetics Resources 3: 
 # License
 
 irelr: an R package to reconstruct pedigrees from molecular data
+
 Copyright (C) 2015  Anders Gonçalves da Silva and Michael A. Russello
 
 This program is free software; you can redistribute it and/or modify
