@@ -9,10 +9,11 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-```{r, load_libs, echo=FALSE, results='hide'}
+```{r, load_libs, echo=FALSE, results='hide', message = FALSE, warning = FALSE}
 require(adegenet)
 require(irelr)
 require(data.table)
+require(moments)
 require(ggplot2)
 require(gridExtra)
 ```
@@ -48,7 +49,10 @@ Below are the first 20 lines of the `nancycats` dataset available in the package
 more about the data set by typing `?nancycats` in `R`'s command prompt.
 
 ```{r, example_genepop_file, echo = FALSE, comment=""}
-cat(readLines(system.file("files/nancycats.gen",package="adegenet"), n = 20), file = '', sep = "\n")
+cat(readLines(system.file("files/nancycats.gen",package="adegenet"), 
+              n = 20), 
+    file = '', 
+    sep = "\n")
 ```
 
 ## Loading the data
@@ -104,6 +108,8 @@ data@ind.names
 ```
 
 # Estimating relatedness indices
+
+## The `sim_rel()` function
 
 Once the data is loaded, we can use `irelr`'s `estimate_rel()` function to 
 estimate relatedness indices for all pairs of individuals in the data set.
@@ -306,7 +312,8 @@ ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
   geom_density(alpha = 0.5) +
   xlab("Lynch and Ritland (1999) index") +
   ylab("Density") +
-  scale_fill_discrete(name = "Relatedness categories", labels = c("Full-Sibs", "Half-Sibs")) +
+  scale_fill_discrete(name = "Relatedness categories", 
+                      labels = c("Full-Sibs", "Half-Sibs")) +
   theme(legend.justification=c(1,0), legend.position=c(1,0.75))
 ```
 
@@ -331,7 +338,9 @@ one woud expect. It also shows that there is a non-trivial proportion of
 
 ```{r, transform_sims}
 # transform output to a new data.table that only has Lynch and Ritland 1999 values
-sims_lr99 <- dcast.data.table(data = sims, formula = sim_ix ~ rel_cat, value.var = 'LR99_avg')
+sims_lr99 <- dcast.data.table(data = sims, 
+                              formula = sim_ix ~ rel_cat, 
+                              value.var = 'LR99_avg')
 sims_lr99
 ```
 
@@ -367,7 +376,9 @@ as the mean, median, and 2.5% and 97.5% quantiles:
 sims_lr99[,list(fs_mean = mean(fs), hs_mean = mean(hs))]
 
 # distribution summary per relatedness category
-sims_lr99[,list(quantile = c(0.025, 0.50, 0.975),fs_summ = quantile(fs, p = c(0.025, 0.5, 0.975)), hs_summ = quantile(hs, p = c(0.025, 0.5, 0.975)))]
+sims_lr99[,list(quantile = c(0.025, 0.50, 0.975),
+                fs_summ = quantile(fs, p = c(0.025, 0.5, 0.975)), 
+                hs_summ = quantile(hs, p = c(0.025, 0.5, 0.975)))]
 ```
 
 ### The Blouin classifier
@@ -459,7 +470,8 @@ ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
   stat_density(kernel = 'cosine', alpha = 0.5, position = 'dodge') +
   xlab("Lynch and Ritland (1999) index") +
   ylab("Density") +
-  scale_fill_discrete(name = "Relatedness categories", labels = c("Full-Sibs", "Half-Sibs")) +
+  scale_fill_discrete(name = "Relatedness categories", 
+                      labels = c("Full-Sibs", "Half-Sibs")) +
   theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
   geom_vline(x = blouin_threshold, colour = 'red', size = 2)
 ```
@@ -517,7 +529,12 @@ is solely comprised of full-sibs and potential half-sibs.**
 
 ```{r, error_change, fig.height = 7, fig.width = 7, message = F}
 thresholds = seq(0,1,length.out = 200)
-change_thresholds <- sims_lr99[,list(thresholds, half_sibs = sapply(thresholds, function(th) sum(hs <= th)) / nrow(sims_lr99), full_sibs = sapply(thresholds, function(th) sum(fs >= th)) / nrow(sims_lr99))]
+change_thresholds <- sims_lr99[,
+                               list(thresholds, 
+                                    half_sibs = sapply(thresholds, 
+                                                       function(th) sum(hs <= th)) / nrow(sims_lr99), 
+                                    full_sibs = sapply(thresholds, 
+                                                       function(th) sum(fs >= th)) / nrow(sims_lr99))]
 ggplot(change_thresholds, aes(thresholds, half_sibs)) + 
   geom_line() + 
   geom_line(aes(thresholds, full_sibs), colour = 'red') +
@@ -538,8 +555,15 @@ to classify the observed values into relatedness categories:
 # with LR99_avg index value that are Blouin Threshold < index ≤ 1.
 # it automatically adds the results to the estimate data.table, which can then
 # facilitate comparisons across estimators
-rel_est_dt[,lr99_class := cut(LR99_avg, breaks = c(-1,blouin_threshold,1), labels = c("hs", "fs"), include.lowest = T)]
+rel_est_dt[,lr99_class := cut(LR99_avg, 
+                              breaks = c(-1,blouin_threshold,1), 
+                              labels = c("hs", "fs"), 
+                              include.lowest = T)]
+
+# tally the number of pairs classified in each class
 table(rel_est_dt[,lr99_class])
+
+# plot the number of pais classfied in each class
 ggplot(rel_est_dt,aes(lr99_class)) + 
   geom_bar() +
   xlab("Pairs classified using the Lynch and Ritland (1999) index using the Blouin threshold.") +
@@ -579,7 +603,8 @@ ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
   geom_density(alpha = 0.5) +
   xlab("Lynch and Ritland (1999) index") +
   ylab("Density") +
-  scale_fill_discrete(name = "Relatedness categories", labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
+  scale_fill_discrete(name = "Relatedness categories", 
+                      labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
   theme(legend.justification=c(1,0), legend.position=c(1,0.75))
 ```
 
@@ -594,11 +619,17 @@ ggplot(sims, aes(y = LR99_avg, x = rel_cat)) +
 
 ```{r, transform_sims2}
 # transform output to a new data.table that only has Lynch and Ritland 1999 values
-sims_lr99 <- dcast.data.table(data = sims, formula = sim_ix ~ rel_cat, value.var = 'LR99_avg')
+sims_lr99 <- dcast.data.table(data = sims, 
+                              formula = sim_ix ~ rel_cat, 
+                              value.var = 'LR99_avg')
 sims_lr99
 ```
 
 ```{r, sim_plot_joint2, fig.height = 7, fig.width = 7, message = F}
+# here, three plots are created comparing each of the three possible 
+# pairs of three relatedness categories taken in groups of two
+
+# plot of full-sibs vs half-sibs simulations
 p1 = ggplot(sims_lr99, aes(x = hs, y = fs)) +
   geom_point(colour = 'gray50') +
   ylab("Full-sibs") +
@@ -610,6 +641,7 @@ p1 = ggplot(sims_lr99, aes(x = hs, y = fs)) +
   geom_vline(x = 0.25) +
   geom_hline(y = 0.50)
 
+# plot of full-sibs vs unrelated simulations
 p2 = ggplot(sims_lr99, aes(x = un, y = fs)) +
   geom_point(colour = 'gray50') +
   ylab("Full-sibs") +
@@ -621,6 +653,7 @@ p2 = ggplot(sims_lr99, aes(x = un, y = fs)) +
   geom_vline(x = 0.0) +
   geom_hline(y = 0.50)
 
+# plot of half-sibs vs unrelated simulations
 p3 = ggplot(sims_lr99, aes(x = un, y = hs)) +
   geom_point(colour = 'gray50') +
   ylab("Half-sibs") +
@@ -632,6 +665,7 @@ p3 = ggplot(sims_lr99, aes(x = un, y = hs)) +
   geom_vline(x = 0.0) +
   geom_hline(y = 0.25)
 
+#plotting the the three plots above in a single figure.
 grid.arrange(p1, p2, p3, ncol = 2)
 ```
 
@@ -651,21 +685,430 @@ sims_lr99[,sum(hs > un)]/nrow(sims_lr99)
 
 #### Classify pairs using the Blouin classifier
 
-```{r, blouin_classifier2}
+Here, we apply the Blouin classifier function that we created above to 
+identify the two thresholds needed to differentiate the three simulated
+relatedness categories of interest:
+
+  1. fs --- hs threshold
+  2. hs --- unrelated threshold
+  
+The density plot of the simulated values is then used to visualize the Blouin
+thresholds.
+
+```{r, blouin_classifier2, fig.height = 7, fig.width = 7, message = F}
 rel_cats <- c('fs','hs','un')
 n_thresholds <- 2
 blouin_thresholds <- numeric(n_thresholds)
 for(i in 1:n_thresholds) {
-  blouin_thresholds[i] <- blouin_classifier(sims_lr99,rel_cats = c('fs', 'hs'))
+  blouin_thresholds[i] <- blouin_classifier(sims_lr99,
+                                            rel_cats = c(rel_cats[i], 
+                                                         rel_cats[(i+1)]))
 }
-# checking the value
-blouin_threshold
 
-# ensuring that they are indeed (nearly) equal (to within a reasonable
-# expected difference given the simulation)
-sims_lr99[,sum(fs <= blouin_threshold)] / nrow(sims_lr99)
-sims_lr99[,sum(hs >= blouin_threshold)] / nrow(sims_lr99)
-
-all.equal(sims_lr99[,sum(fs <= blouin_threshold)] / nrow(sims_lr99),
-  sims_lr99[,sum(hs >= blouin_threshold)] / nrow(sims_lr99))
+ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
+  geom_density(alpha = 0.5) +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Density") +
+  scale_fill_discrete(name = "Relatedness categories", 
+                      labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
+  theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
+  geom_vline(x = blouin_thresholds, colour = 'red', size = 2)
 ```
+
+Once the thresholds have been identified, we can use them to classify observed 
+pairs, and estimate error probabilities. As we can see in the bar plot below,
+adding the `unrelated` class dramatically changed the number of identified
+`half-sibs`.
+
+```{r, class_three_categories, fig.height = 7, fig.width = 7, message = F}
+# we first start be creating a vector of thresholds to separate across 
+# categories
+# because the thresholds need to be from lowest to highest, we use the 
+# sort() function to make sure they are in increasing order. 
+# then, add the bottom (-1) and top (1) thresholds, as relatedness indices
+# should not be less than -1 or greater than 1.
+blouin_thresholds <- c(-1, sort(blouin_thresholds), 1)
+
+# we then again use the cut function to classify pairs using 
+# the Lynch and Ritland (1999) index --- this can be repeated with any 
+# simulated index.
+# the function will give label 'hs' to all pairs that have an LR99_avg index
+# value that is -1 < index ≤ Blouin Threshold. And, it will label as 'fs' pairs
+# with LR99_avg index value that are Blouin Threshold < index ≤ 1.
+# it automatically adds the results to the estimate data.table, which can then
+# facilitate comparisons across estimators
+rel_est_dt[,lr99_class := cut(LR99_avg, 
+                              breaks = blouin_thresholds, 
+                              labels = c("un","hs", "fs"), 
+                              include.lowest = T)]
+
+# tally the number of pairs in each class
+table(rel_est_dt[,lr99_class])
+
+# plot the number of pairs in each class
+ggplot(rel_est_dt,aes(lr99_class)) + 
+  geom_bar() +
+  xlab("Pairs classified using the Lynch and Ritland (1999) index using the Blouin threshold.") +
+  ylab("Count")
+```
+
+Estimating the error becomes a little more complex when there are more than 
+two classes. But, we can use the thresholds vector to our advantage here.
+
+```{r,miss_class_error_general}
+calc_error_rate_general <- function(thresholds, data, rel_cats) {
+  n_cats <- length(rel_cats)
+  total_sims <- nrow(data)
+  res = matrix(rep(0,n_cats^2), ncol = n_cats)
+  for (i in 1:n_cats) {
+    class_sims <- data[, cut(eval(as.symbol(rel_cats[i])), 
+               breaks = thresholds, 
+               labels = rel_cats, 
+               include.lowest = T)]
+    res[i,] <- rev(table(class_sims)/total_sims)
+  }
+  rownames(res) <- rel_cats
+  colnames(res) <- rel_cats
+  return(res)
+}
+
+calc_error_rate_general(blouin_thresholds, 
+                        data = sims_lr99, 
+                        rel_cats = c('fs', 'hs', 'un'))
+# the resuls are a table, where the rows indicate the relatedness category
+# that was simulated, and the columns the relatedness category that the 
+# simulated dyad was classified given the thresholds used. So, about 0.73
+# of the full-sib dyads were correctly classified as full-sibs, while a 
+# little over 0.25 were classified as half-sibs, and less than 0.02 were 
+# classified as unrelated.
+```
+
+Again, we might not be satisfied with these rates. For instance, one might be
+interested in identifying pairs of dyads that have high support for being 
+`full-sibs`. To do this, we could say that there should be fewer than 10% 
+false `full-sibs`, where as at the moment, close to 28% (0.2691 + 0.0105) of 
+pairs identified as `full-sibs` are not `full-sibs`. To do this, we can 
+modify our threshold calculator function to find the optimal threshold that 
+minimizes the missclassification error (i.e., that minimizes the number of 
+pairs simulated in other categories than `full-sibs`, but mistakenly classified
+as `full-sibs`.
+
+```{r, mod_threshold_function, fig.height = 7, fig.width = 7, message = F}
+# a function to find the threshold that minimizes the error rate of 
+# full-sibs. It takes as input the simulated data, the minimum error rate
+# the relatedness category of interest, and a list of other categories.
+find_threshold <- function(data, error_rate, for_cat, other_cats) {
+  total_sims <- nrow(data)
+  minimize_function <- function(threshold, 
+                                data, 
+                                error_rate, 
+                                for_cat, 
+                                other_cats, 
+                                n) {
+    n_cats <- length(other_cats)
+    prop_missclass = 0
+    for (i in 1:n_cats) {
+      class_sims <- data[, cut(eval(as.symbol(other_cats[i])), 
+                 breaks = c(-1,threshold,1), 
+                 labels = c(other_cats[i],for_cat), 
+                 include.lowest = T)]
+      prop_missclass <- prop_missclass + 
+        (table(class_sims)/total_sims)[for_cat]
+    }
+    return((prop_missclass - error_rate)^2)
+  }
+  new_threshold  <- optimise(f = minimize_function, 
+           interval = c(0,1), 
+           data = data, 
+           error_rate = error_rate,
+           for_cat = for_cat,
+           other_cats = other_cats,
+           n = total_sims)
+  return(new_threshold$minimum)
+}
+
+new_threshold <- find_threshold(sims_lr99, 0.1, 'fs', c('un','hs'))
+
+# the new threshold
+new_threshold
+
+ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
+  geom_density(alpha = 0.5) +
+  xlab("Lynch and Ritland (1999) index") +
+  ylab("Density") +
+  scale_fill_discrete(name = "Relatedness categories", 
+                      labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
+  theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
+  geom_vline(x = new_threshold, colour = 'red', size = 2)
+```
+
+# Comparing indices
+
+Inferences about a pedigree sould be made using the index that 
+minimizes miss-classification errors. The variance of the distribution of 
+an index can be used to compare across indices. As shown below, we can see
+that different indices have very different properties depending on the 
+relatedness category. And, as we saw above, the same pair can have 
+very different index values across indices. However, the variance is just one
+aspect of the distribution of indices. The skewness and kurtosis can also 
+give us valuable information.
+
+Ultimately, the index of choice, will depend on what is wanted. If one wants
+to identify `full-sibs`, then the index should be such that the bias and 
+variance is smallest for the `full-sib` category, but that it is also 
+relatively symmetrical about the expected relatedness value 
+(i.e., has skewness close to 0), and is peaked around the expected 
+relatedness value (i.e., most of the density is on or just around the 
+expected value, thus, the kurtosis is highly positive).
+
+```{r, compare_indices}
+# create a vector of possible indices
+indices <- names(sims)[1:8]
+indices
+
+# create a new data.table
+sims_dt = list()
+for (i in indices) {
+  sims_trans <- dcast.data.table(data = sims, 
+                                 formula = sim_ix ~ rel_cat, 
+                                 value.var = i)
+  sims_trans[,index := rep(i,nrow(sims_trans))]
+  sims_dt[[i]] <- sims_trans
+}
+
+# bind the individual index lists together
+sims_dt <- rbindlist(sims_dt)
+
+# rescale by the expected index value for each simulated relatedness category
+sims_dt[, (rel_cats) := list(fs - 0.5, hs - 0.25, un)]
+sims_dt
+# set the simulated related categories, and the ones for which there is 
+# an interest
+rel_cats <- c('fs', 'hs', 'un')
+focus_cats <- c('fs','hs','un')
+
+# examining bias
+# as we can see, the index that minimizes the bias changes depending on 
+# relationship category
+sims_bias_dt <- sims_dt[,
+                        lapply(.SD, mean), 
+                        .SDcols = rel_cats, 
+                        by = index]
+sims_bias_dt
+# indices ordered from best to worst under each relatedness category
+order_bias <- sapply(focus_cats, 
+                     function(ix) sims_bias_dt[order(abs(eval(as.symbol(ix))), 
+                                                     decreasing = F), 
+                                               index])
+order_bias
+# the mean rank for each index across relatedness categories
+mean_rank_bias <- sort(
+  sapply(indices, 
+         function(ix) mean(apply(order_bias, 2, 
+                                 function(col) which(col == ix)))))
+
+# examining variance
+# as we can see, the index that minimizes the variance changes depending on 
+# relationship category
+sims_var_dt <- sims_dt[,
+                       lapply(.SD, var), 
+                       .SDcols = rel_cats, 
+                       by = index]
+sims_var_dt
+# indices ordered from best to worst under each relatedness category
+order_var <- sapply(focus_cats, 
+                    function(ix) 
+                      sims_var_dt[order(eval(as.symbol(ix)), 
+                                        decreasing = F),
+                                  index])
+order_var
+# the mean rank for each index across relatedness categories
+mean_rank_var <- sort(
+  sapply(indices,
+         function(ix) mean(apply(order_var, 2, 
+                                 function(col) which(col == ix)))))
+
+# examining skewness
+# as we can see, the index that minimizes the skewness changes depending on 
+# relationship category
+# values closer to zero are indicatives of more symmetric distributions
+sims_skew_dt <- sims_dt[,
+                        lapply(.SD, skewness), 
+                        .SDcols = rel_cats, 
+                        by = index]
+sims_skew_dt
+# indices ordered from best to worst under each relatedness category
+order_skew <- sapply(focus_cats, 
+                     function(ix) 
+                       sims_skew_dt[order(abs(eval(as.symbol(ix))), 
+                                          decreasing = F), 
+                                    index])
+order_skew
+# the mean rank for each index across relatedness categories
+mean_rank_skew <- sort(
+  sapply(
+    indices, 
+    function(ix) 
+      mean(apply(order_skew, 2, 
+                            function(col) 
+                              which(col == ix)))))
+
+# examining kurtosis
+# as we can see, the index that maximizes kurtosis changes depending on 
+# relationship category
+# values larger than zero indicate more peaked distributions
+sims_kurt_dt <- sims_dt[,
+                        lapply(.SD, kurtosis), 
+                        .SDcols = rel_cats, 
+                        by = index]
+sims_kurt_dt
+# indices ordered from best to worst under each relatedness category
+order_kurt <- sapply(focus_cats, 
+                     function(ix) 
+                       sims_kurt_dt[order(eval(as.symbol(ix)), 
+                                          decreasing = T),index])
+order_kurt
+# the mean rank for each index across relatedness categories
+mean_rank_kurt <- sort(
+  sapply(indices, 
+         function(ix) 
+           mean(apply(order_kurt,2, function(col) which(col == ix)))))
+
+# the mean rank across the four different distribution descriptors
+sort(
+  sapply(indices, 
+         function(ix) 
+           mean(
+             c(mean_rank_bias[ix], 
+               mean_rank_var[ix], 
+               mean_rank_skew[ix], 
+               mean_rank_kurt[ix]))))
+```
+
+From the above, we can see that perhaps `QG89_rsxy` is the best relatedness
+index given our data. In the mean ranking, it is tied with `QG89_xy`, but 
+the latter is not a symmetrical relatedness index, so we prefer the former.
+However, none of the relatedness indices was a clear winner, with the top 
+ranking indices having a mean rank close to 4.
+Thus, in addition to `QG89_rsxy`, it is might be useful to also examine 
+`W02_cor`, `LR99_avg`, and `hk08`. These give us a breadth of different 
+indices to examine the error rates.
+
+Below, we rank the relatedness indices bases on their bias, variance, 
+skewness, and kurtosis. We then use the Blouin classifier to find 
+optimal thresholds to separate `unrelated`, `half-sib`, and `full-sib` 
+pairs.
+
+```{r, blouin_classifier3, fig.height = 7, fig.width = 7, message = F}
+# creating a sims data.table with all simulated values
+sims_dt = list()
+for (i in indices) {
+  sims_trans <- dcast.data.table(data = sims, 
+                                 formula = sim_ix ~ rel_cat, 
+                                 value.var = i)
+  sims_trans[,index := rep(i,nrow(sims_trans))]
+  sims_dt[[i]] <- sims_trans
+}
+
+# bind the individual index lists together
+sims_dt <- rbindlist(sims_dt)
+
+# list of indexes to evaluate
+indices <- indices[c(4,7,5,8)]
+indices
+n_indices <- length(indices)
+rel_cats <- c('fs','hs','un')
+n_thresholds <- 2
+blouin_thresholds <- matrix(0,ncol = n_thresholds, nrow = n_indices)
+for(i in 1:n_indices) {
+  for(t in 1:n_thresholds) {
+    blouin_thresholds[i,t] <- blouin_classifier(
+      sims_dt[index == indices[i],list(sim_ix, fs, hs, un)], 
+      rel_cats = c(rel_cats[t], rel_cats[(t+1)]))
+  }
+}
+rownames(blouin_thresholds) <- indices
+blouin_thresholds
+
+sims_dt_long <- data.table:::melt.data.table(sims_dt, 
+                                             id.vars = c("index", "sim_ix"))
+
+ggplot(sims_dt_long[index %in% indices,], aes(x = value, fill = variable)) +
+  geom_density(alpha = 0.5) +
+  xlab("Index") +
+  ylab("Density") +
+  scale_fill_discrete(name = "Relatedness categories", 
+                      labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
+  theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
+  geom_vline(data = 
+               data.frame(
+                 index = rownames(blouin_thresholds), 
+                 blouin_thresholds), 
+             aes(xintercept = X1, group = index), 
+             colour = 'red', 
+             size = 2) +
+  geom_vline(data = 
+               data.frame(
+                 index = rownames(blouin_thresholds), 
+                 blouin_thresholds), 
+             aes(xintercept = X2, 
+                 group = index), 
+             colour = 'red', 
+             size = 2) +
+  facet_wrap(facets = ~ index, ncol = 2, scales = 'free')
+```
+
+Now that we have thresholds, we can estimate the error rates for each 
+index. As we can see from the figure below, `hk08` is the most variable index,
+while`QG89_rsxy` is the best index for identifying `full-sibs` and `half-sibs`.
+Although, this comes at a slight disadvantage when identifying `unrelated` 
+individuals.
+
+```{r, error_rates_by_index, fig.height = 7, fig.width = 7, message = F}
+# our error function
+calc_error_rate_general <- function(thresholds, data, rel_cats) {
+  n_cats <- length(rel_cats)
+  total_sims <- nrow(data)
+  res = matrix(rep(0,n_cats^2), ncol = n_cats)
+  for (i in 1:n_cats) {
+    class_sims <- data[, cut(eval(as.symbol(rel_cats[i])), 
+               breaks = thresholds, 
+               labels = rel_cats, 
+               include.lowest = T)]
+    res[i,] <- rev(table(class_sims)/total_sims)
+  }
+  rownames(res) <- rel_cats
+  colnames(res) <- rel_cats
+  return(res)
+}
+# adding the limits and re-ordering the thresholds
+blouin_thresholds <- cbind(
+  rep(-1,nrow(blouin_thresholds)), 
+  blouin_thresholds[,2], 
+  blouin_thresholds[,1], 
+  rep(1,nrow(blouin_thresholds)))
+
+error_rates <- lapply(indices, function(ix)
+  calc_error_rate_general(threshold = blouin_thresholds[ix,],
+                  data = sims_dt[index == ix,list(sim_ix,fs, hs, un)], 
+                  rel_cats = c("fs", "hs", "un"))
+  )
+names(error_rates) <- indices
+library(reshape2)
+prop_class <- sapply(error_rates, diag)
+prop_class <- melt(prop_class)
+
+ggplot(prop_class, aes(x = Var1, y = value, fill = Var2)) +
+  geom_bar(stat = 'identity', position = 'dodge') +
+  xlab("Relatedness category") +
+  ylab("Proportion correctly classified") +
+  scale_fill_discrete(name = "Relatedness Index")
+```
+
+# Separating `parent-offspring` from `full-sibs`
+
+Separating `parent-offspring` pairs from `full-sibs` is not generally possible
+with relatedness indices only. At the moment, the best option is to examine
+patterns of proportion of loci with at least one shared allele.
+
+**More on this topic is forthcoming **
