@@ -4,7 +4,7 @@ author: "Anders Gonçalves da Silva"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{use-irel}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -14,6 +14,7 @@ require(adegenet)
 require(irelr)
 require(data.table)
 require(moments)
+require(reshape2)
 require(ggplot2)
 require(gridExtra)
 ```
@@ -1094,7 +1095,6 @@ error_rates <- lapply(indices, function(ix)
                   rel_cats = c("fs", "hs", "un"))
   )
 names(error_rates) <- indices
-library(reshape2)
 prop_class <- sapply(error_rates, diag)
 prop_class <- melt(prop_class)
 

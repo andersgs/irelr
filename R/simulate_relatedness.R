@@ -78,7 +78,7 @@ sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){
   return(res)
     }
 
-#' @useDynLib irelr sims
+#' @useDynLib irelr sim_relC
 sim_rvalues <-function(n_ind, n_loc,n_alleles,allele_frq,n_alleles_per_locus,k_values,reps, heteroz){
   n_ind = as.integer(n_ind)
   n_loc = as.integer(n_loc)
@@ -93,9 +93,6 @@ sim_rvalues <-function(n_ind, n_loc,n_alleles,allele_frq,n_alleles_per_locus,k_v
   return(res)
 }
 
-
-#' A data.frame of simulated relatedness values
-#'
 sim_rel_dataframe = function(data,relCategories = c('po', 'fs', 'hs', 'un'),numbIter = 10000, lociToKeep = 'all', all_freqs = NULL){
   relFactor = factor(rep(relCategories,each=9*numbIter),levels=relCategories)
   if(lociToKeep != 'all'){

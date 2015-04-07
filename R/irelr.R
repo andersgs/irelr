@@ -8,15 +8,19 @@
 #' pairs of individuals in a sample: irelr::estimate_rel()
 #' 
 #' Type ?irelr::estimate_rel() to find out more.
-#
+#'
 #' @section Simulate relatedness:
 #' irelr provides a single function to simulated relatedness values for any
 #' relatedness category: irelr::sim_rel()
 #' 
 #' Type ?irelr::sim_rel() to find out more
-#' 
-#' @section Vignette
+#'
+#'  
+#' @section Vignette:
 #' An extensive vignette is provided with examples of how to use irelr. 
+#'
 #'
 #' @docType package
 #' @name irelr
+
+NULL
