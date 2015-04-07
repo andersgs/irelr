@@ -7,6 +7,7 @@ vignette: >
   %\VignetteIndexEntry{use-irel}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
+  \usepackage{underscore}
 ---
 
 ```{r, load_libs, echo=FALSE, results='hide', message = FALSE, warning = FALSE}
@@ -59,8 +60,8 @@ cat(readLines(system.file("files/nancycats.gen",package="adegenet"),
 ## Loading the data
 
 If the data is in a `genepop` format, it can be easily loaded by using the 
-function `read.genepop()` from the `adegenet` package (*note that the file 
-must have the `.gen` extention*):
+function `read.genepop()` from the `adegenet` package (note that the file 
+must have the `.gen` extention):
 
 ```{r, load_data}
 # set file path location. substitute this for the actual path of your file
@@ -112,7 +113,7 @@ data@ind.names
 
 ## The `sim_rel()` function
 
-Once the data is loaded, we can use `irelr`'s `estimate_rel()` function to 
+Once the data is loaded, we can use the function `estimate_rel()` to 
 estimate relatedness indices for all pairs of individuals in the data set.
 
 ```{r, estimate_rel}
@@ -124,7 +125,7 @@ rel_est_dt  <- data.table(rel_estimates)
 rel_est_dt
 ```
 
-The output of the `estimate_rel()` function is a data.frame, which we transform
+The output of the `estimate_rel()` function is a `data.frame`, which we transform
 in to a `data.table` (this requires the `data.table` package). The output includes
 to columns --- `ind1` and `ind2` --- that indicate for which two individuals the 
 indices in the row refer to.
@@ -360,7 +361,7 @@ ggplot(sims_lr99, aes(x = hs, y = fs)) +
 
 We can calculate the probability that the index value for a `full-sib` dyad 
 is smaller than the index of a `half-sib` dyad by estimating the proportion 
-of simulations for which LR99_fs > LR99_hs:
+of simulations for which $LR99_{fs} > LR99_{hs}$:
 
 ```{r,prop_fs_larger_hs}
 sims_lr99[,sum(fs > hs)]/nrow(sims_lr99)
@@ -551,9 +552,9 @@ to classify the observed values into relatedness categories:
 
 ```{r, classify_estimates, fig.height = 7, fig.width = 7, message = F}
 # use the cut function to classify pairs using the Lynch and Ritland (1999) index.
-# the function will give label 'hs' to all pairs that have an LR99_avg index
-# value that is -1 < index ≤ Blouin Threshold. And, it will label as 'fs' pairs
-# with LR99_avg index value that are Blouin Threshold < index ≤ 1.
+# the function will give label 'hs' to all pairs that have an LR99avg index
+# value that is -1 < index <= Blouin Threshold. And, it will label as 'fs' pairs
+# with LR99_avg index value that are Blouin Threshold < index <= 1.
 # it automatically adds the results to the estimate data.table, which can then
 # facilitate comparisons across estimators
 rel_est_dt[,lr99_class := cut(LR99_avg, 
@@ -733,9 +734,9 @@ blouin_thresholds <- c(-1, sort(blouin_thresholds), 1)
 # we then again use the cut function to classify pairs using 
 # the Lynch and Ritland (1999) index --- this can be repeated with any 
 # simulated index.
-# the function will give label 'hs' to all pairs that have an LR99_avg index
-# value that is -1 < index ≤ Blouin Threshold. And, it will label as 'fs' pairs
-# with LR99_avg index value that are Blouin Threshold < index ≤ 1.
+# the function will give label 'hs' to all pairs that have an LR99avg index
+# value that is -1 < index <= Blouin Threshold. And, it will label as 'fs' pairs
+# with LR99_avg index value that are Blouin Threshold < index <= 1.
 # it automatically adds the results to the estimate data.table, which can then
 # facilitate comparisons across estimators
 rel_est_dt[,lr99_class := cut(LR99_avg, 
