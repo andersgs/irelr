@@ -64,7 +64,7 @@ these two functions to reconstruct a pedigree. To access the vignette just type:
 # How to cite
 
 Please cite the original `iRel` publication below, and this code specifically 
-with the following doi: https://zenodo.org/badge/doi/10.5281/zenodo.16651.svg
+with the following: ![doi](https://zenodo.org/badge/doi/10.5281/zenodo.16651.svg)
 
 # References
 
