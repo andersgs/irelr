@@ -11,7 +11,7 @@ Description: irelr is an R implementation of iRel, a software designed to infer
     relatedness indices are calculated, and Monte Carlo 
     simulations are performed to determine confidence in classifying 
     pairs of individuals into different relatedness categories.
-License: GPLv2
+License: GPL-2
 Imports: 
     adegenet,
     ape,
