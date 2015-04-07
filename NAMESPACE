@@ -3,4 +3,4 @@
 export(estimate_rel)
 export(sim_rel)
 useDynLib(irelr,estimateRel)
-useDynLib(irelr,sims)
+useDynLib(irelr,sim_relC)

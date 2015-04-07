@@ -89,7 +89,7 @@ sim_rvalues <-function(n_ind, n_loc,n_alleles,allele_frq,n_alleles_per_locus,k_v
   reps = as.integer(reps)
   heteroz = as.numeric(heteroz)
   res = matrix(numeric(0),ncol=10,nrow=reps)
-  out <- .Call("sims",n_ind,allele_frq,n_alleles_per_locus,k_values,n_loc,n_alleles,res,reps,heteroz)
+  out <- .Call("sim_relC",n_ind,allele_frq,n_alleles_per_locus,k_values,n_loc,n_alleles,res,reps,heteroz)
   return(res)
 }
 

@@ -36,7 +36,7 @@ void sim_twoIBD(double *al_frq, int start, int end, double *ind1, double *ind2);
 
 //functions
 
-SEXP sims(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SEXP n_alls, SEXP rep_out, SEXP reps, SEXP heteroz)
+SEXP sim_relC(SEXP n_ind, SEXP al_frq, SEXP n_al_per_l, SEXP k_array, SEXP n_loc, SEXP n_alls, SEXP rep_out, SEXP reps, SEXP heteroz)
 {
 	
 //translate to SEXP to C	
