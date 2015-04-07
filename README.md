@@ -1,7 +1,7 @@
 # Welcome
 
 Welcome the R package irelr. This package provides functionality formerly available
-in the software iRel (Gonçalves da Silva and Russello 2009). It adds to the functionality
+in the software iRel (Gonçalves da Silva and Russello 2011). It adds to the functionality
 by providing the user with additional relatedness indices to those in the original 
 publication. 
 
@@ -56,3 +56,9 @@ indices from 10,000 unrelated pairs:
 
 An extensive vignette is available with details on how to use the results from
 these two functions to reconstruct a pedigree.
+
+# References
+
+Gonçalves da Silva A, Russello MA (2011) iRel: software for implementing pairwise relatedness 
+estimators and evaluating their performance. Conservation Genetics Resources 3: 69-71.
+[PDF](http://link.springer.com/article/10.1007/s12686-010-9292-4)
