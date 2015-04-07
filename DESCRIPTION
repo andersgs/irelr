@@ -1,7 +1,7 @@
 Package: irelr
 Type: Package
 Title: Pedigree inference using molecular marker data
-Version: 0.0.1
+Version: 0.0.2
 Date: 2015-01-05
 Authors@R: c(person("Anders", "Gonçalves da Silva",email = "andersgs@gmail.com",role = c("aut","cre")),
   person("Michael A.", "Russello", email = "michael.russello@ubc.ca",role = "aut"))
@@ -13,11 +13,14 @@ Description: irelr is an R implementation of iRel, a software designed to infer
     pairs of individuals into different relatedness categories.
 License: GPLv2
 Imports: 
-  adegenet,
-  ape,
-  hierfstat,
-  knitr,
-  ggplot2,
-  reshape2
+    adegenet,
+    ape,
+    data.table,
+    ggplot2,
+    gridExtra,
+    hierfstat,
+    knitr,
+    moments,
+    reshape2
 Suggests: knitr
 VignetteBuilder: knitr
