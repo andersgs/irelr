@@ -61,6 +61,11 @@ these two functions to reconstruct a pedigree. To access the vignette just type:
 
     vignette(topic = 'use-irelr', package = 'irelr')
 
+# How to cite
+
+Please cite the original `iRel` publication below, and this code specifically 
+with the following doi: https://zenodo.org/badge/doi/10.5281/zenodo.16651.svg
+
 # References
 
 Gonçalves da Silva A, Russello MA (2011) iRel: software for implementing pairwise relatedness 
