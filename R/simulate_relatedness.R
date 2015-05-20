@@ -60,7 +60,7 @@ sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){
       apply(data@tab,2,function(allele)
         sum(!is.na(allele)))
   } else {
-    if(length(allele_frq != n_alleles)){
+    if(length(allele_frq) != n_alleles){
       stop("Number of alleles provided in the allele_frq is 
            different from the number of alleles 
            in your data")
