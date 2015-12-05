@@ -1,8 +1,8 @@
 Package: irelr
 Type: Package
 Title: Pedigree inference using molecular marker data
-Version: 0.0.3
-Date: 2015-01-05
+Version: 0.0.4
+Date: 2015-12-05
 Authors@R: c(person("Anders", "Gonçalves da Silva",email = "andersgs@gmail.com",role = c("aut","cre")),
   person("Michael A.", "Russello", email = "michael.russello@ubc.ca",role = "aut"))
 Maintainer: Anders Gonçalves da Silva <andersgs@gmail.com>
@@ -13,7 +13,7 @@ Description: irelr is an R implementation of iRel, a software designed to infer
     pairs of individuals into different relatedness categories.
 License: GPL-2
 Imports: 
-    adegenet,
+    adegenet (>= 2.0.0),
     ape,
     data.table,
     ggplot2,

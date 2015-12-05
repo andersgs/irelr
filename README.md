@@ -72,6 +72,18 @@ Gonçalves da Silva A, Russello MA (2011) iRel: software for implementing pairwi
 estimators and evaluating their performance. Conservation Genetics Resources 3: 69-71.
 [PDF](http://link.springer.com/article/10.1007/s12686-010-9292-4)
 
+# Updates
+
+## 2015-12-05
+  * Updated the vignette to be compliant with the new version of `Genind` object
+  taking advantage of the accessor functions.
+  * `irelr` now requires at least `adegenet` version 2.0.0
+  * Added a function `read.genepop` to replace the `adegenet` version 2.0.0 
+  function which does not parse missing data correctly. The included version
+  is a copy/paste of the function in the development version of `adegenet`
+  found on [here](https://github.com/thibautjombart/adegenet)
+  
+
 # License
 
 irelr: an R package to reconstruct pedigrees from molecular data

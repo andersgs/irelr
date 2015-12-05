@@ -70,7 +70,11 @@ file_path <- system.file("files/nancycats.gen", package = "adegenet")
 # having a look at the file path
 file_path
 # loading the data into a variable called data
-data <- adegenet::read.genepop(file = file_path, quiet = T)
+# NOTE: Here, I am using a version of read.genepop that is supplied with
+# irelr. It is a direct copy of the function found in the development version 
+# of adegenet. The current version of adegenet, found on CRAN, does not
+# parse missing data correctly.
+data <- irelr::read.genepop(file = file_path, quiet = T)
 # having a look at data
 # notice that data is an S4 class of type 'genind'
 # it includes 237 individuals, genotyped at 9 loci
@@ -78,35 +82,40 @@ data <- adegenet::read.genepop(file = file_path, quiet = T)
 data
 
 # number of indivduals
-length(data@ind.names)
+n_ind <- adegenet::nInd(data)
+n_ind
 
 # number of loci
-length(data@loc.names)
+n_loc <- adegenet::nLoc(data)
+n_loc
 
 # number of alleles per locus
-data@loc.nall
+n_all <- adegenet::nAll(data)
+n_all
 
 # total number of alleles
-sum(data@loc.nall)
+sum(n_all)
 
 # total number of populations
 # irel will ignore the population division and attempt to estimate the 
 # pedigree of all individuals in the data file
-length(data@pop.names)
+n_pop <- adegenet::nPop(data)
+n_pop
 
 # irelr also assumes that individuals have unique identifiers
-# at the moment, the individuals are just named after their population
-data@ind.names
+# at the moment, the individuals might just get sequential numbers
+# from 1 to total number of individuals
+adegenet::indNames(data)
 
 # this can be fixed by changing the data in the data file so that each 
 # individual has a unique identifier. 
 # alternatively, a list of names can be manually created and assigned to the 
-# ind.names slot of the 'genind' object:
-data(nancycats)
-ind_identifiers <- nancycats@ind.names
+# the 'genind' object:
+data(nancycats, package = "adegenet")
+ind_identifiers <- adegenet::indNames(nancycats)
 ind_identifiers
-data@ind.names <- ind_identifiers
-data@ind.names
+adegenet::indNames(data) <- ind_identifiers
+adegenet::indNames(data)
 ```
 
 # Estimating relatedness indices
@@ -277,7 +286,7 @@ hs_kvector <- c(0.5, 0.5, 0.0)
 
 # simulate half-sib dyads, and output relatedness values
 half_sibs <- irelr::sim_rel(data = data, reps = nreps, k_vector = hs_kvector)
-half_sibs_dt  <- data.table(half_sibs)
+half_sibs_dt  <- data.table::data.table(half_sibs)
 half_sibs_dt
 
 # add a relatedness category column to be used later
@@ -289,7 +298,7 @@ fs_kvector <- c(0.25, 0.5, 0.25)
 
 # simulate full-sib dyads, and output relatedness values
 full_sibs <- irelr::sim_rel(data = data, reps = nreps, k_vector = fs_kvector)
-full_sibs_dt  <- data.table(full_sibs)
+full_sibs_dt  <- data.table::data.table(full_sibs)
 full_sibs_dt
 
 # add a relatedness category column to be used later

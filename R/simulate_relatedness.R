@@ -44,11 +44,11 @@ sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){
          appropriate format.")
   }
   #determine number of individuals
-  n_ind = length(data$ind.names)
+  n_ind = adegenet::nInd(data)
   #determine number of loci
-  n_loc = length(data@loc.names)
+  n_loc = adegenet::nLoc(data)
   #number of alleles per locus
-  n_als_per_locus = data@loc.nall
+  n_als_per_locus = adegenet::nAll(data)
   #total number of alleles
   n_alleles = sum(n_als_per_locus)
   #calculate the allele frequency based on the data 
@@ -56,8 +56,9 @@ sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){
   # or if supplied by user, check that the data
   # match what is expected from the data
   if(is.null(allele_frq)){
-    allele_frq = apply(data@tab,2,sum,na.rm=T)/
-      apply(data@tab,2,function(allele)
+    geno_freq <- adegenet::tab(data, freq = T)
+    allele_frq = apply(geno_freq,2,sum,na.rm=T)/
+      apply(geno_freq,2,function(allele)
         sum(!is.na(allele)))
   } else {
     if(length(allele_frq) != n_alleles){
@@ -72,7 +73,8 @@ sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){
   if(length(k_vector)!= 3){
     stop("k-vector must have three values.")
   }
-  heteroz = sapply(lapply(seploc(data), function(loc) apply(loc@tab, 1, function(g) {if(any(is.na(g))) {NA} else if (any(g == 0.5)) {1} else {0}})), function(h) sum(h, na.rm = T) / sum(!is.na(h)))
+  
+  heteroz = adegenet::summary(data, verbose = F)$Hobs
   res = sim_rvalues(n_ind,n_loc,n_alleles,allele_frq,n_als_per_locus,k_vector,reps, heteroz)
   colnames(res)<-c("QG89_xy","QG89_yx","QG89_avg","QG89_rsxy","LR99_avg",'W02_unc','W02_cor', 'hk08','propAllelesShared','propLociShared')
   return(res)
@@ -88,8 +90,18 @@ sim_rvalues <-function(n_ind, n_loc,n_alleles,allele_frq,n_alleles_per_locus,k_v
   k_values = as.numeric(k_values)
   reps = as.integer(reps)
   heteroz = as.numeric(heteroz)
-  res = matrix(numeric(0),ncol=10,nrow=reps)
-  out <- .Call("sim_relC",n_ind,allele_frq,n_alleles_per_locus,k_values,n_loc,n_alleles,res,reps,heteroz)
+  res = matrix(numeric(0), 
+               ncol=10, 
+               nrow=reps)
+  out <- .Call("sim_relC", 
+               n_ind,allele_frq, 
+               n_alleles_per_locus, 
+               k_values, 
+               n_loc, 
+               n_alleles, 
+               res, 
+               reps, 
+               heteroz)
   return(res)
 }
 
