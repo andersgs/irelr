@@ -112,7 +112,12 @@ read.genepop <- function(file, ncode=2L, quiet=FALSE){
   if(!all(unique(nchar(X))==(ncode*2))) stop(paste("some alleles are not encoded with", ncode,
                                                    "characters\nCheck 'ncode' argument"))
   
-  res <- adegenet::df2genind(X=X,pop=pop, ploidy=2, ncode=ncode, NA.char=NA.char)
+  res <- adegenet::df2genind(X=X, 
+                             pop=pop, 
+                             ind.names = ind.names,
+                             ploidy=2, 
+                             ncode=ncode, 
+                             NA.char=NA.char)
   res@call <- prevcall
   
   if(!quiet) cat("\n...done.\n\n")

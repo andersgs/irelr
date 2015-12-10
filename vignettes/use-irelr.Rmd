@@ -102,9 +102,14 @@ sum(n_all)
 n_pop <- adegenet::nPop(data)
 n_pop
 
-# irelr also assumes that individuals have unique identifiers
-# at the moment, the individuals might just get sequential numbers
+# irelr also assumes that individuals have unique identifiers,
+# if your genepop does not have unique identifiers when you 
+# load your file, a warning will be issued telling you that
+# there individual idenfiers are NOT unique, and that
+# row IDs will be used instead. Row IDs will be the 
+# row number. Therefore, the individuals will named with sequential numbers
 # from 1 to total number of individuals
+# this is the case for the nancycats data
 adegenet::indNames(data)
 
 # this can be fixed by changing the data in the data file so that each 
@@ -114,8 +119,24 @@ adegenet::indNames(data)
 data(nancycats, package = "adegenet")
 ind_identifiers <- adegenet::indNames(nancycats)
 ind_identifiers
-adegenet::indNames(data) <- ind_identifiers
+# the easiest way to do this would be to prepare a list of individual
+# in the same order as they appear in genpop file using Excel. The
+# names should be in a single column of the spreadsheet.
+# save the list as a Tab delimited file. Once you have do so, 
+# you should have a file that looks like this:
+# ind1
+# ind2
+# ...
+# indN
+#
+# you can then load your own list of identifiers in the following way
+#ind_identifiers <- read.table(file = "/path/to/file/identifier.txt", header = F, quote = F, row.names = F, stringsAsFactors = F)
+# you can then run the following code:
+adegenet::indNames(data) <- unlist(ind_identifiers)
 adegenet::indNames(data)
+
+# however, by the far the easiest way would be to code your individual names
+# into the genpop file.
 ```
 
 # Estimating relatedness indices

@@ -1,7 +1,7 @@
 Package: irelr
 Type: Package
 Title: Pedigree inference using molecular marker data
-Version: 0.0.4
+Version: 0.0.5
 Date: 2015-12-05
 Authors@R: c(person("Anders", "Gonçalves da Silva",email = "andersgs@gmail.com",role = c("aut","cre")),
   person("Michael A.", "Russello", email = "michael.russello@ubc.ca",role = "aut"))
