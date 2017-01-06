@@ -238,7 +238,7 @@ information from multiple indices when reconstructing pedigrees.
 ggplot(rel_est_dt, aes(x = LR99_avg, y = W02_cor)) +
   geom_point() +
   geom_density2d(colour = "red") +
-  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  geom_abline(slope = 1, intercept = 0, size = 2, colour = 'navyblue') +
   xlim(c(-1,1)) +
   ylim(c(-1,1)) +
   xlab("Lynch and Ritland (1999) index") +
@@ -383,10 +383,10 @@ ggplot(sims_lr99, aes(x = hs, y = fs)) +
   xlab("Half-sibs") +
   xlim(c(-1,1)) + 
   ylim(c(-1,1)) +
-  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  geom_abline(intercept = 0, slope = 1, size = 2, colour = 'navyblue') +
   stat_density2d(colour = 'red', n = 40, size = 1.5) +
-  geom_vline(x = 0.25) +
-  geom_hline(y = 0.50)
+  geom_vline(xintercept = 0.25) +
+  geom_hline(yintercept = 0.50)
 ```
 
 We can calculate the probability that the index value for a `full-sib` dyad 
@@ -505,7 +505,7 @@ ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
   scale_fill_discrete(name = "Relatedness categories", 
                       labels = c("Full-Sibs", "Half-Sibs")) +
   theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
-  geom_vline(x = blouin_threshold, colour = 'red', size = 2)
+  geom_vline(xintercept = blouin_threshold, colour = 'red', size = 2)
 ```
 
 ### Calculate misclassification errors
@@ -570,7 +570,7 @@ change_thresholds <- sims_lr99[,
 ggplot(change_thresholds, aes(thresholds, half_sibs)) + 
   geom_line() + 
   geom_line(aes(thresholds, full_sibs), colour = 'red') +
-  geom_vline(x = blouin_threshold, colour = 'navyblue') + 
+  geom_vline(xintercept = blouin_threshold, colour = 'navyblue') + 
   xlab("Thresholds") +
   ylab("Proportion correctly classified")
 ```
@@ -668,10 +668,10 @@ p1 = ggplot(sims_lr99, aes(x = hs, y = fs)) +
   xlab("Half-sibs") +
   xlim(c(-1,1)) + 
   ylim(c(-1,1)) +
-  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  geom_abline(intercept = 0, slope = 1, size = 2, colour = 'navyblue') +
   stat_density2d(colour = 'red', n = 40, size = 1.5) +
-  geom_vline(x = 0.25) +
-  geom_hline(y = 0.50)
+  geom_vline(xintercept = 0.25) +
+  geom_hline(yintercept = 0.50)
 
 # plot of full-sibs vs unrelated simulations
 p2 = ggplot(sims_lr99, aes(x = un, y = fs)) +
@@ -680,10 +680,10 @@ p2 = ggplot(sims_lr99, aes(x = un, y = fs)) +
   xlab("Unrelated") +
   xlim(c(-1,1)) + 
   ylim(c(-1,1)) +
-  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  geom_abline(intercept = 0, slope = 1, size = 2, colour = 'navyblue') +
   stat_density2d(colour = 'red', n = 40, size = 1.5) +
-  geom_vline(x = 0.0) +
-  geom_hline(y = 0.50)
+  geom_vline(xintercept = 0.0) +
+  geom_hline(yintercept = 0.50)
 
 # plot of half-sibs vs unrelated simulations
 p3 = ggplot(sims_lr99, aes(x = un, y = hs)) +
@@ -692,10 +692,10 @@ p3 = ggplot(sims_lr99, aes(x = un, y = hs)) +
   xlab("Unrelated") +
   xlim(c(-1,1)) + 
   ylim(c(-1,1)) +
-  geom_abline(a = 0, b = 1, size = 2, colour = 'navyblue') +
+  geom_abline(intercept = 0, slope = 1, size = 2, colour = 'navyblue') +
   stat_density2d(colour = 'red', n = 40, size = 1.5) +
-  geom_vline(x = 0.0) +
-  geom_hline(y = 0.25)
+  geom_vline(xintercept = 0.0) +
+  geom_hline(yintercept = 0.25)
 
 #plotting the the three plots above in a single figure.
 grid.arrange(p1, p2, p3, ncol = 2)
@@ -744,7 +744,7 @@ ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
   scale_fill_discrete(name = "Relatedness categories", 
                       labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
   theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
-  geom_vline(x = blouin_thresholds, colour = 'red', size = 2)
+  geom_vline(xintercept = blouin_thresholds, colour = 'red', size = 2)
 ```
 
 Once the thresholds have been identified, we can use them to classify observed 
@@ -871,7 +871,7 @@ ggplot(sims, aes(x = LR99_avg, fill = rel_cat)) +
   scale_fill_discrete(name = "Relatedness categories", 
                       labels = c("Full-Sibs", "Half-Sibs", "Unrelated")) +
   theme(legend.justification=c(1,0), legend.position=c(1,0.75)) +
-  geom_vline(x = new_threshold, colour = 'red', size = 2)
+  geom_vline(xintercept = new_threshold, colour = 'red', size = 2)
 ```
 
 # Comparing indices

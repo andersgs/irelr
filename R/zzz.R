@@ -1,3 +1,3 @@
 .onAttach <- function(libname, pkgname) {
-  packageStartupMessage("Welcome to irelr (version 0.0.4)")
+  packageStartupMessage("Welcome to irelr (version 0.0.6)")
 }
