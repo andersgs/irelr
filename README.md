@@ -5,15 +5,15 @@ in the software iRel (Gonçalves da Silva and Russello 2011). It adds to the fun
 by providing the user with additional relatedness indices to those in the original 
 publication. 
 
-# How to get it
+# How to get it on Linux/Mac
 
 The package contains C code, so if you are in Windows, you will require the 
 RTools package.
 
-I recommend installing the latest version of R from [here](http://www.r-project.org/).
+I recommend installing the latest version of R from [here](https://www.R-project.org).
 Then installing the latest version of RStudio from [here](http://www.rstudio.com/products/rstudio/download/).
 
-Everyone will require the Hadley's devtools package. From the R command prompt within RStudio, type:
+Everyone will require Hadley's devtools package. From the R command prompt within RStudio, type:
 
     install.packages('devtools')
 
@@ -26,6 +26,30 @@ You can then install `irelr` with the following command:
     install_github("andersgs/irelr", build_vignettes = TRUE)
 
 This might take a few moments as the vignette and source files are built.
+
+# How to get it on Windows
+
+The latest release (version 0.0.6) has binaries available for `R` version `3.3.2`.
+
+To install: 
+
+ 0. Install dependencies: `install.packages(c("adegenet","ape","data.table","ggplot2","gridExtra","hierfstat","moments","reshape2"))`
+ 1. Download the [file](https://github.com/andersgs/irelr/releases/download/v0.0.6/irelr_0.0.6_win.zip)
+ 2. Open `R`, click on `Packages` -> `Install package(s) from local files` (If in `RStudio` select `Tools` -> `Install Packages..` --- then select `Install from: Package Archive File`)
+ 3. Select the file `irelr_0.0.6_win.zip` that you downloaded in step 1.
+ 
+ If all goes well, you should see the following message on the `R` command-prompt:
+ 
+ `package irelr successsfully unpacked and MD5 sums checked`
+ 
+ You should then be able to load `irelr` with the following:
+ 
+ ```library("irelr"")```
+ 
+ If all works out, you should see the following printed to the console:
+ 
+ ```Welcome to irelr (version 0.0.6)```
+ 
 
 # How to use it
 
@@ -64,7 +88,7 @@ these two functions to reconstruct a pedigree. To access the vignette just type:
 # How to cite
 
 Please cite the original `iRel` publication below, and this code specifically 
-with the following: ![doi](https://zenodo.org/badge/doi/10.5281/zenodo.16651.svg)
+with the following: [![DOI](https://zenodo.org/badge/33524849.svg)](https://zenodo.org/badge/latestdoi/33524849)
 
 # References
 
@@ -73,6 +97,10 @@ estimators and evaluating their performance. Conservation Genetics Resources 3: 
 [PDF](http://link.springer.com/article/10.1007/s12686-010-9292-4)
 
 # Updates
+
+## 2017-01-29
+  * Added binary files for Windows for release 0.0.6 (built on version 3.3.2 of `R`) using [win-builder.r-project.org](https://win-builder.r-project.org)
+  * Added instructions on how to install the Windows version
 
 ## 2015-12-05
   * Updated the vignette to be compliant with the new version of `Genind` object
