@@ -44,7 +44,7 @@ To install:
  
  You should then be able to load `irelr` with the following:
  
- `library("irelr"")`
+ `library("irelr")`
  
  If all works out, you should see the following printed to the console:
  
