@@ -7,13 +7,10 @@ publication.
 
 # How to get it on Linux/Mac
 
-The package contains C code, so if you are in Windows, you will require the 
-RTools package.
-
 I recommend installing the latest version of R from [here](https://www.R-project.org).
 Then installing the latest version of RStudio from [here](http://www.rstudio.com/products/rstudio/download/).
 
-Everyone will require Hadley's devtools package. From the R command prompt within RStudio, type:
+You require Hadley Wickham's devtools package. From the R command prompt within RStudio, type:
 
     install.packages('devtools')
 
