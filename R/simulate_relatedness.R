@@ -30,9 +30,9 @@
 #'
 #'@references Blouin M, Parsons M, Lacaille V, Lotz S (1996) Use of microsatellite 
 #'                  loci to classify individuals by relatedness. 
-#'                  Molecular Ecology, 5, 393–401.
+#'                  Molecular Ecology, 5, 393-401.
 #'@references Wang JL (2011) Unbiased relatedness estimation in structured 
-#'                  populations. Genetics, 187, 887–901.
+#'                  populations. Genetics, 187, 887-901.
 #'
 #'@export
 sim_rel <- function(data, reps, k_vector = c(1.0,0.0,0.0), allele_frq = NULL){

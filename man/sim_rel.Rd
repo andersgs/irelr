@@ -41,9 +41,9 @@ The goal of this function is to take population allele frequency data
 \references{
 Blouin M, Parsons M, Lacaille V, Lotz S (1996) Use of microsatellite 
                  loci to classify individuals by relatedness. 
-                 Molecular Ecology, 5, 393–401.
+                 Molecular Ecology, 5, 393-401.
 
 Wang JL (2011) Unbiased relatedness estimation in structured 
-                 populations. Genetics, 187, 887–901.
+                 populations. Genetics, 187, 887-901.
 }
 
